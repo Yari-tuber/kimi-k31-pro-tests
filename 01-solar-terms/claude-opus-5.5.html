@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>二十四节气 · The 24 Solar Terms</title>
+<style>
+:root{--seal:#b8322a;--kai:"Kaiti SC","STKaiti","KaiTi","楷体","BiauKai",serif;--song:"Songti SC","STSong","Noto Serif SC","Source Han Serif SC","SimSun","宋体",serif;--latin:"Didot","Bodoni 72","Bodoni MT","Times New Roman",serif}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d0f12;user-select:none;-webkit-user-select:none}
+#stage{position:fixed;inset:0}
+canvas.layer{position:absolute;inset:0;width:100%;height:100%;opacity:0}
+.grain{position:fixed;inset:0;pointer-events:none;opacity:.14;mix-blend-mode:overlay;background-size:220px 220px}
+.vignette{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 85% 75% at 45% 45%,transparent 55%,rgba(20,14,8,.28) 100%)}
+.ui{position:fixed;inset:0;pointer-events:none;font-family:var(--song);transition:color 1.4s ease}
+.info,.hou{text-shadow:0 0 .6vh var(--halo),0 0 1.6vh var(--halo),0 0 3vh var(--halo)}
+
+.brand{position:absolute;left:9vw;top:5vh;font-size:1.2vh;letter-spacing:.7em;opacity:.65;display:flex;gap:2vh;align-items:center}
+.brand i{display:inline-block;width:4vh;height:1px;background:currentColor;opacity:.6}
+
+.title{position:absolute;left:9vw;top:12vh;display:flex;align-items:flex-start;gap:3.4vh}
+.tcol{display:flex;flex-direction:column;align-items:center}
+.name{writing-mode:vertical-rl;font-family:var(--kai);font-size:17vh;line-height:1.06;letter-spacing:.02em}
+.name span{display:inline-block;opacity:0;animation:charIn 1.9s cubic-bezier(.16,.8,.24,1) forwards}
+@keyframes charIn{0%{opacity:0;transform:translateY(-5vh) scale(1.04);filter:blur(14px)}100%{opacity:1;transform:none;filter:blur(0)}}
+.seal{margin-top:2.6vh;width:5.4vh;height:5.4vh;background:var(--seal);color:#f7ecdc;font-family:var(--kai);font-size:3.5vh;line-height:1;display:grid;place-items:center;border-radius:.6vh;box-shadow:inset 0 0 0 .32vh var(--seal),inset 0 0 0 .48vh rgba(250,236,220,.8);opacity:0;transform:rotate(-6deg) scale(1.9)}
+.seal.on{animation:stamp .55s cubic-bezier(.3,1.5,.5,1) 1.15s forwards}
+@keyframes stamp{to{opacity:.93;transform:rotate(-6deg) scale(1)}}
+.rule{width:1px;height:24vh;background:currentColor;opacity:.35;margin-top:1.2vh;transform-origin:50% 0;transform:scaleY(0);animation:grow 1.4s cubic-bezier(.2,.8,.2,1) .5s forwards}
+@keyframes grow{to{transform:scaleY(1)}}
+.hou{writing-mode:vertical-rl;font-size:1.85vh;letter-spacing:.36em;line-height:1;margin-top:1.2vh}
+.hou p{margin-left:1.5vh;opacity:0;animation:fadeIn 1.3s ease forwards}
+.hou em{font-style:normal;font-size:1.15vh;opacity:.55;margin-bottom:1.4vh;letter-spacing:.2em}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-1.2vh)}to{opacity:.88;transform:none}}
+
+.info{position:absolute;left:9vw;bottom:8vh}
+.info>*{opacity:0;animation:up 1.2s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes up{from{opacity:0;transform:translateY(1.6vh)}to{opacity:1;transform:none}}
+.num{font-family:var(--latin);font-size:6.4vh;font-weight:300;line-height:1;letter-spacing:.04em}
+.num small{font-size:1.5vh;opacity:.55;margin-left:.8vh;letter-spacing:.25em}
+.py{font-family:var(--latin);font-style:italic;font-size:2.5vh;letter-spacing:.14em;margin-top:1.8vh}
+.en{font-family:var(--latin);font-size:1.15vh;letter-spacing:.5em;text-transform:uppercase;opacity:.7;margin-top:.9vh}
+.desc{font-size:2vh;letter-spacing:.55em;margin-top:2.4vh}
+.date{font-size:1.25vh;letter-spacing:.45em;opacity:.6;margin-top:1.2vh}
+
+.wheel{position:absolute;top:50%;right:-62vh;width:100vh;height:100vh;margin-top:-50vh}
+.wrot{position:absolute;inset:0;transition:transform 1.5s cubic-bezier(.65,0,.25,1)}
+.wrot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.lab{position:absolute;left:50%;top:50%;transform-origin:0 0;font-size:1.55vh;letter-spacing:.32em;white-space:nowrap;opacity:.38;transition:opacity 1s,font-size 1s,letter-spacing 1s}
+.lab.on{opacity:1;font-size:2.3vh;letter-spacing:.4em}
+.sea{position:absolute;left:50%;top:50%;transform-origin:0 0;font-family:var(--kai);font-size:3.4vh;opacity:.2}
+.pointer{position:absolute;left:-1.5vh;top:50%;width:4.5vh;height:1px;background:currentColor;opacity:.8}
+.pointer::after{content:'';position:absolute;right:-.5vh;top:-.5vh;width:1vh;height:1vh;border-radius:50%;background:var(--seal)}
+
+.hint{position:absolute;right:4vw;bottom:4.2vh;font-size:1.15vh;letter-spacing:.4em;opacity:.6;display:flex;align-items:center;gap:1vh}
+.hint kbd{font-family:var(--latin);font-size:1.05vh;letter-spacing:.2em;border:1px solid currentColor;padding:.35vh 1vh;border-radius:.4vh}
+.bar{position:absolute;left:0;bottom:0;height:2px;width:100%;background:currentColor;opacity:.45;transform-origin:0 50%;transform:scaleX(0)}
+
+@media (max-aspect-ratio:1/1){
+  .wheel{display:none}
+  .name{font-size:11vh}
+  .title{left:8vw;top:11vh}
+  .info{left:8vw}
+}
+</style>
+</head>
+<body>
+<div id="stage"><canvas class="layer"></canvas><canvas class="layer"></canvas></div>
+<div class="grain" id="grain"></div>
+<div class="vignette"></div>
+<div class="ui" id="ui">
+  <div class="brand">二十四节气<i></i>THE 24 SOLAR TERMS</div>
+  <div class="title">
+    <div class="tcol"><div class="name" id="name"></div><div class="seal" id="seal"></div></div>
+    <div class="rule" id="rule"></div>
+    <div class="hou" id="hou"></div>
+  </div>
+  <div class="info" id="info"></div>
+  <div class="wheel"><div class="wrot" id="wrot"></div><div class="pointer"></div></div>
+  <div class="hint"><kbd>SPACE</kbd>下一节气</div>
+  <div class="bar" id="bar"></div>
+</div>
+<script>
+/* ============================== 数据 ============================== */
+const T=[
+{n:'立春',py:'Lì chūn',en:'Start of Spring',md:[2,4],s:0,hou:['东风解冻','蛰虫始振','鱼陟负冰'],desc:'东风解冻　草木萌芽',
+ sky:['#d4e3cf','#f4f1e3'],mt:['#bccfb6','#8fae95','#5c8468'],sharp:.55,ink:'#2d4636',
+ orb:{x:.72,y:.3,r:.05,c:'#fffaf0',g:'#fff4d6'},
+ pre:[['mist',{n:4,y:[.5,.7]}]],
+ fx:[['grass',{n:170,h:[.012,.045],c:['#7aa865','#97c27a','#628f52'],wind:.12}],['wind',{n:9,c:'#ffffff',a:.6}],['motes',{n:40,c:'#f6ffe0'}]]},
+{n:'雨水',py:'Yǔ shuǐ',en:'Rain Water',md:[2,19],s:0,hou:['獭祭鱼','鸿雁来','草木萌动'],desc:'春雨润物　冰雪消融',
+ sky:['#aebfc2','#dde2da'],mt:['#9cb0ac','#778f8b','#4f6865'],sharp:.7,ink:'#253839',water:1,
+ pre:[['mist',{n:6,y:[.45,.7]}]],
+ fx:[['ripples',{rate:9,c:'#ffffff'}],['rain',{n:230,len:20,speed:720,angle:.1,c:'#ffffff',a:.42,w:1}]]},
+{n:'惊蛰',py:'Jīng zhé',en:'Awakening of Insects',md:[3,5],s:0,hou:['桃始华','仓庚鸣','鹰化为鸠'],desc:'春雷乍动　万物惊醒',
+ sky:['#3a4060','#8a87a0'],mt:['#5a5d79','#41445d','#282a3d'],sharp:.8,ink:'#f1ece2',
+ pre:[['lightning',{}],['mist',{n:4,y:[.55,.75],a:.3}]],
+ fx:[['rain',{n:300,len:26,speed:950,angle:.18,c:'#dfe3ff',a:.36,w:1}],['petals',{n:26,c:['#f4a7b6','#f8c9d2','#ee8fa3'],size:7,speed:60,wind:80}]]},
+{n:'春分',py:'Chūn fēn',en:'Spring Equinox',md:[3,20],s:0,hou:['玄鸟至','雷乃发声','始电'],desc:'昼夜平分　燕归梁间',
+ sky:['#f2d4cb','#fbf1e5'],mt:['#e6c1b8','#c99791','#9a6767'],sharp:.5,ink:'#5a2f34',
+ orb:{x:.66,y:.33,r:.06,c:'#fff7ee',g:'#ffe2d0'},
+ pre:[['mist',{n:4,y:[.55,.75]}]],
+ fx:[['swallows',{n:7,c:'#3b2a30'}],['petals',{n:46,c:['#f6c1c9','#fadadd','#ee9fae','#ffffff'],size:6,speed:45,wind:40}]]},
+{n:'清明',py:'Qīng míng',en:'Pure Brightness',md:[4,4],s:0,hou:['桐始华','田鼠化为鴽','虹始见'],desc:'气清景明　细雨纷纷',
+ sky:['#c6d3cb','#eef0e7'],mt:['#a6b9ae','#80978c','#5a7268'],sharp:.75,ink:'#263830',
+ pre:[['rainbow',{a:1}],['mist',{n:8,y:[.4,.8],a:.6}]],
+ fx:[['grass',{n:190,h:[.02,.07],c:['#6f9a6a','#88b07d','#5b8457'],wind:.1}],['rain',{n:140,len:10,speed:380,angle:.05,c:'#ffffff',a:.5,w:.8}],['mist',{n:3,y:[.88,.98],a:.4}]]},
+{n:'谷雨',py:'Gǔ yǔ',en:'Grain Rain',md:[4,20],s:0,hou:['萍始生','鸣鸠拂其羽','戴胜降于桑'],desc:'雨生百谷　牡丹盛放',
+ sky:['#c3d0bd','#e8e6d5'],mt:['#9ab298','#759573','#4c6a4d'],sharp:.6,ink:'#28372a',
+ pre:[['mist',{n:5,y:[.5,.75]}]],
+ fx:[['grass',{n:230,h:[.03,.1],c:['#5f8d4e','#7aa860','#4c7a40'],wind:.14}],['rain',{n:200,len:18,speed:640,angle:.08,c:'#ffffff',a:.4,w:1}],['petals',{n:20,c:['#d8708d','#e99ab0','#c24f72'],size:11,speed:55,wind:35}]]},
+{n:'立夏',py:'Lì xià',en:'Start of Summer',md:[5,5],s:1,hou:['蝼蝈鸣','蚯蚓出','王瓜生'],desc:'绿树阴浓　夏日初长',
+ sky:['#b5dcd6','#eef6ec'],mt:['#8cc2b1','#5aa08d','#2f7666'],sharp:.6,ink:'#163d35',water:1,
+ orb:{x:.7,y:.22,r:.055,c:'#fffdf2',g:'#fff6c8'},
+ pre:[],
+ fx:[['lotus',{n:26,pad:'#3f8a5c',pad2:'#2f6f49',fl:'#f2a6b8'}],['ripples',{rate:2.5,c:'#ffffff'}],['swallows',{n:3,c:'#1f3a34'}]]},
+{n:'小满',py:'Xiǎo mǎn',en:'Grain Buds',md:[5,21],s:1,hou:['苦菜秀','靡草死','麦秋至'],desc:'麦粒渐满　小满未满',
+ sky:['#e1eac4','#f7f3db'],mt:['#c5d299','#a0b36b','#71873d'],sharp:.25,ink:'#37411c',
+ orb:{x:.74,y:.26,r:.05,c:'#fffef4',g:'#fbf6c8'},
+ pre:[['clouds',{n:4,y:[.12,.3],a:.7,c:'#ffffff'}]],
+ fx:[['grass',{n:280,h:[.08,.22],c:['#9db35a','#b6c46a','#86a048','#c9cf7c'],wind:.1,ear:1,earc:['#c6c86e','#a9b852']}],['wind',{n:6,c:'#ffffff',a:.5}]]},
+{n:'芒种',py:'Máng zhòng',en:'Grain in Ear',md:[6,5],s:1,hou:['螳螂生','鵙始鸣','反舌无声'],desc:'麦熟芒尖　忙收忙种',
+ sky:['#f5d993','#fbeecd'],mt:['#e4c47e','#c59c4c','#8d6a2b'],sharp:.2,ink:'#47330e',
+ orb:{x:.7,y:.3,r:.065,c:'#fffbea',g:'#ffe9a8'},
+ pre:[['rays',{c:'#fff6d0',n:16}]],
+ fx:[['grass',{n:300,h:[.1,.26],c:['#d4a747','#c49035','#e3bd5e','#b88430'],wind:.12,ear:1,awn:1,earc:['#e8c160','#d09e3e']}],['motes',{n:30,c:'#fff3c4'}]]},
+{n:'夏至',py:'Xià zhì',en:'Summer Solstice',md:[6,21],s:1,hou:['鹿角解','蜩始鸣','半夏生'],desc:'日长之至　蝉鸣始起',
+ sky:['#78bfdc','#f1eccc'],mt:['#6aab9b','#3d8775','#1c5c4e'],sharp:.6,ink:'#113832',
+ orb:{x:.62,y:.17,r:.09,c:'#fffef0',g:'#fff4b8'},
+ pre:[['rays',{c:'#ffffff',n:20}],['clouds',{n:5,y:[.3,.52],a:.85,c:'#ffffff',big:1}]],
+ fx:[['heat',{n:6,c:'#ffffff'}],['grass',{n:200,h:[.04,.12],c:['#2f7d55','#3d9163','#226a46'],wind:.08}]]},
+{n:'小暑',py:'Xiǎo shǔ',en:'Minor Heat',md:[7,7],s:1,hou:['温风至','蟋蟀居壁','鹰始挚'],desc:'温风徐来　暑气渐升',
+ sky:['#f1bb82','#fae5c3'],mt:['#e3a46f','#c07848','#874627'],sharp:.45,ink:'#55260e',
+ orb:{x:.7,y:.28,r:.075,c:'#fff6e0',g:'#ffd9a0'},
+ pre:[['rays',{c:'#fff1d6',n:12}]],
+ fx:[['heat',{n:14,c:'#fff3e0'}],['wind',{n:10,c:'#fff0dc',a:.55}],['swallows',{n:1,c:'#55260e',scale:2,glide:1}]]},
+{n:'大暑',py:'Dà shǔ',en:'Major Heat',md:[7,23],s:1,hou:['腐草为萤','土润溽暑','大雨时行'],desc:'腐草为萤　溽暑蒸腾',
+ sky:['#17263a','#3b4b55'],mt:['#2c3d48','#1f2e39','#142029'],sharp:.5,ink:'#f2e7c9',water:1,
+ orb:{x:.76,y:.2,r:.04,c:'#fbf0cf',g:'#f5e3a8',m:1},
+ pre:[['stars',{n:80}]],
+ fx:[['lotus',{n:22,pad:'#1f3b34',pad2:'#2c4d44',fl:'#c98a9a'}],['fireflies',{n:70,c:'#dfff8f'}]]},
+{n:'立秋',py:'Lì qiū',en:'Start of Autumn',md:[8,7],s:2,hou:['凉风至','白露降','寒蝉鸣'],desc:'凉风初至　一叶知秋',
+ sky:['#e5dec2','#f6f0dd'],mt:['#c8c297','#a29d6d','#757148'],sharp:.55,ink:'#3d3a1b',
+ orb:{x:.72,y:.3,r:.055,c:'#fffaf0',g:'#fbeec8'},
+ pre:[['mist',{n:4,y:[.55,.72]}]],
+ fx:[['grass',{n:180,h:[.03,.1],c:['#8f9a4c','#a8a556','#b8a35a'],wind:.15}],['wind',{n:9,c:'#ffffff',a:.55}],['leaves',{n:12,c:['#d8b445','#c39a35','#a8a04a','#e0c060'],size:12,speed:50,wind:60}]]},
+{n:'处暑',py:'Chǔ shǔ',en:'End of Heat',md:[8,23],s:2,hou:['鹰乃祭鸟','天地始肃','禾乃登'],desc:'暑气至此　渐渐消退',
+ sky:['#9fc0d9','#eeefe8'],mt:['#9bb3c1','#7695a8','#506c7f'],sharp:.6,ink:'#1e3347',
+ pre:[['clouds',{n:9,y:[.08,.45],a:.9,c:'#ffffff'}]],
+ fx:[['swallows',{n:1,c:'#1e3347',scale:2,glide:1}],['grass',{n:260,h:[.05,.14],c:['#c9a64a','#b8923a','#d8b85a'],wind:.1,ear:1,earc:['#e0bb55','#c99f3d']}]]},
+{n:'白露',py:'Bái lù',en:'White Dew',md:[9,7],s:2,hou:['鸿雁来','玄鸟归','群鸟养羞'],desc:'露凝而白　秋意渐浓',
+ sky:['#c4d2d9','#eef1ed'],mt:['#a8bbc3','#879fa9','#5e7883'],sharp:.65,ink:'#21333e',
+ orb:{x:.7,y:.32,r:.045,c:'#ffffff',g:'#eef4f6'},
+ pre:[['geese',{n:2,c:'#3a4c56'}],['mist',{n:6,y:[.5,.8],a:.55}]],
+ fx:[['grass',{n:210,h:[.05,.16],c:['#6d8f86','#7fa196','#5a7c74'],wind:.06,dew:1}],['mist',{n:3,y:[.88,.98],a:.35}]]},
+{n:'秋分',py:'Qiū fēn',en:'Autumn Equinox',md:[9,23],s:2,hou:['雷始收声','蛰虫坯户','水始涸'],desc:'平分秋色　丹枫满山',
+ sky:['#efc58a','#f8e7ca'],mt:['#da9a62','#b5663a','#7a3b20'],sharp:.55,ink:'#471b0b',
+ orb:{x:.66,y:.36,r:.06,c:'#fff3dc',g:'#ffd8a0'},
+ pre:[['mist',{n:4,y:[.55,.75]}]],
+ fx:[['leaves',{n:48,c:['#d4552c','#e3823a','#b8361f','#eaa645','#c2442a'],size:13,speed:60,wind:55}],['wind',{n:5,c:'#fff3e0',a:.5}]]},
+{n:'寒露',py:'Hán lù',en:'Cold Dew',md:[10,8],s:2,hou:['鸿雁来宾','雀入大水为蛤','菊始黄华'],desc:'露气寒冷　鸿雁南飞',
+ sky:['#2c3858','#9b8e97'],mt:['#4b4e69','#33364f','#1e2137'],sharp:.7,ink:'#f1e9da',
+ orb:{x:.72,y:.24,r:.05,c:'#fdf6e3',g:'#e9dcc4',m:1},
+ pre:[['stars',{n:60}],['geese',{n:2,c:'#151829'}],['mist',{n:5,y:[.6,.8],a:.35}]],
+ fx:[['chrys',{n:7}]]},
+{n:'霜降',py:'Shuāng jiàng',en:"Frost's Descent",md:[10,23],s:2,hou:['豺乃祭兽','草木黄落','蛰虫咸俯'],desc:'气肃而凝　霜降叶红',
+ sky:['#cfcac7','#efe9e3'],mt:['#b6a4a0','#8e6e69','#5a3b37'],sharp:.6,ink:'#43211d',
+ orb:{x:.7,y:.3,r:.045,c:'#ffffff',g:'#f5ece6'},
+ pre:[['mist',{n:6,y:[.5,.8],a:.5}]],
+ fx:[['frost',{n:24}],['leaves',{n:30,c:['#b5322a','#cf522e','#8c2820','#dd8a3a'],size:12,speed:55,wind:40}]]},
+{n:'立冬',py:'Lì dōng',en:'Start of Winter',md:[11,7],s:3,hou:['水始冰','地始冻','雉入大水为蜃'],desc:'水始成冰　万物收藏',
+ sky:['#bcc5cf','#e7e9eb'],mt:['#a3adb9','#7d8997','#545e6c'],sharp:.7,ink:'#242c35',water:1,
+ orb:{x:.72,y:.3,r:.04,c:'#ffffff',g:'#eef1f4'},
+ pre:[['mist',{n:5,y:[.5,.72],a:.5}]],
+ fx:[['wind',{n:14,c:'#ffffff',a:.6}],['snow',{n:50,size:1.8,speed:35,wind:60,c:'#ffffff'}]]},
+{n:'小雪',py:'Xiǎo xuě',en:'Minor Snow',md:[11,22],s:3,hou:['虹藏不见','天气上升地气下降','闭塞而成冬'],desc:'寒气初盛　雪落未深',
+ sky:['#b0bbc8','#e2e6eb'],mt:['#cbd3dc','#9ba7b5','#6a7787'],sharp:.7,ink:'#232e3a',
+ pre:[['mist',{n:5,y:[.5,.75],a:.45}]],
+ fx:[['snow',{n:170,size:2.4,speed:40,wind:15,c:'#ffffff'}]]},
+{n:'大雪',py:'Dà xuě',en:'Major Snow',md:[12,7],s:3,hou:['鹖鴠不鸣','虎始交','荔挺出'],desc:'瑞雪漫天　山河素裹',
+ sky:['#93a0b2','#dce1e7'],mt:['#eef1f4','#cdd5de','#a4b0be'],sharp:.75,ink:'#1c2735',
+ pre:[['snow',{n:200,size:1.4,speed:30,wind:20,c:'#ffffff'}],['mist',{n:5,y:[.5,.75],a:.5}]],
+ fx:[['snow',{n:380,size:3.6,speed:75,wind:35,c:'#ffffff'}]]},
+{n:'冬至',py:'Dōng zhì',en:'Winter Solstice',md:[12,22],s:3,hou:['蚯蚓结','麋角解','水泉动'],desc:'阴极阳生　一阳来复',
+ sky:['#0c1628','#2a3956'],mt:['#22314c','#17233a','#0d1628'],sharp:.65,ink:'#eee5d0',
+ orb:{x:.7,y:.22,r:.05,c:'#fbf3dc',g:'#c9cfe0',m:1},
+ pre:[['stars',{n:240,shoot:1}],['mist',{n:4,y:[.6,.8],a:.25}]],
+ fx:[['snow',{n:35,size:1.6,speed:20,wind:8,c:'#ffffff'}]]},
+{n:'小寒',py:'Xiǎo hán',en:'Minor Cold',md:[1,5],s:3,hou:['雁北乡','鹊始巢','雉始雊'],desc:'寒梅著花　雁始北乡',
+ sky:['#b9b5b2','#e6e1db'],mt:['#c2bcb7','#9a928d','#6b625d'],sharp:.7,ink:'#36241f',
+ pre:[['mist',{n:5,y:[.5,.78],a:.5}]],
+ fx:[['plum',{c:'#33241f',fl:['#c8323f','#d94a57','#b22735']}],['snow',{n:90,size:2.2,speed:35,wind:15,c:'#ffffff'}],['petals',{n:10,c:['#c8323f','#d94a57'],size:5,speed:40,wind:30}]]},
+{n:'大寒',py:'Dà hán',en:'Major Cold',md:[1,20],s:3,hou:['鸡始乳','征鸟厉疾','水泽腹坚'],desc:'岁末天寒　冰坚待春',
+ sky:['#8796ab','#cad2dc'],mt:['#dce3ea','#b3bfcc','#8695a8'],sharp:.8,ink:'#1a2433',
+ pre:[['mist',{n:5,y:[.45,.75],a:.5}]],
+ fx:[['frost',{n:16}],['wind',{n:16,c:'#ffffff',a:.55}],['snow',{n:560,size:2.8,speed:130,wind:320,c:'#ffffff'}]]},
+];
+const DUR=5, SEASON='春夏秋冬';
+
+/* ============================== 工具 ============================== */
+const rnd=(a,b)=>a+Math.random()*(b-a), pick=a=>a[Math.random()*a.length|0];
+const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v, ease=k=>1-Math.pow(1-k,3), TAU=Math.PI*2;
+const hex2rgb=h=>{h=h.replace('#','');if(h.length==3)h=[...h].map(c=>c+c).join('');const n=parseInt(h,16);return[n>>16&255,n>>8&255,n&255]};
+const rgba=(h,a)=>{const[r,g,b]=hex2rgb(h);return`rgba(${r},${g},${b},${a})`};
+const mix=(a,b,k)=>{const A=hex2rgb(a),B=hex2rgb(b);return'#'+A.map((v,i)=>Math.round(v+(B[i]-v)*k).toString(16).padStart(2,'0')).join('')};
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const sprites={};
+function glow(c,puff){const k=c+(puff?'p':'');if(sprites[k])return sprites[k];const s=128,cv=document.createElement('canvas');cv.width=cv.height=s;const g=cv.getContext('2d'),gr=g.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+ if(puff){gr.addColorStop(0,rgba(c,1));gr.addColorStop(.5,rgba(c,.7));gr.addColorStop(1,rgba(c,0));}else{gr.addColorStop(0,rgba(c,1));gr.addColorStop(.2,rgba(c,.6));gr.addColorStop(1,rgba(c,0));}
+ g.fillStyle=gr;g.fillRect(0,0,s,s);return sprites[k]=cv}
+const CN='〇一二三四五六七八九十';
+const cnNum=n=>n<=10?CN[n]:n<20?'十'+CN[n-10]:CN[n/10|0]+'十'+(n%10?CN[n%10]:'');
+
+let W=0,H=0,DPR=1;
+
+/* ============================== 效果 ============================== */
+const FX={};
+FX.rain=(S,o)=>{const P=Array.from({length:o.n},()=>({x:rnd(-W*.2,W*1.1),y:rnd(-H,H),z:rnd(.4,1)}));
+ return c=>{const dt=S.dt;c.strokeStyle=rgba(o.c,o.a);c.lineWidth=o.w;c.beginPath();
+  for(const p of P){const v=o.speed*p.z*dt;p.y+=v;p.x+=v*o.angle;if(p.y>H){p.y=rnd(-80,0);p.x=rnd(-W*.2,W*1.05)}
+   c.moveTo(p.x,p.y);c.lineTo(p.x-o.len*p.z*o.angle,p.y-o.len*p.z)}c.stroke()}};
+FX.snow=(S,o)=>{const P=Array.from({length:o.n},()=>({x:rnd(0,W),y:rnd(-H*.2,H),r:Math.pow(Math.random(),2)*o.size+.6,ph:rnd(0,TAU)}));
+ return(c,t)=>{const dt=S.dt;c.fillStyle=o.c;c.globalAlpha=.9;c.beginPath();
+  for(const p of P){const k=p.r/o.size;p.y+=o.speed*(.35+k)*dt;p.x+=(o.wind*(.4+k)+Math.sin(t*1.3+p.ph)*14)*dt;
+   if(p.y>H+5){p.y=-5;p.x=rnd(-W*.3,W)}if(p.x>W+10)p.x-=W+20;if(p.x<-10)p.x+=W+20;
+   c.moveTo(p.x+p.r,p.y);c.arc(p.x,p.y,p.r,0,TAU)}c.fill()}};
+function faller(S,o,shape){const K=H/900;const P=Array.from({length:o.n},()=>({x:rnd(-W*.2,W),y:rnd(-H,H),s:rnd(.6,1)*o.size*K,rot:rnd(0,TAU),spin:rnd(-2,2),fl:rnd(0,TAU),fs:rnd(1,3),c:pick(o.c),vy:rnd(.6,1.1)}));
+ return(c,t)=>{const dt=S.dt;for(const p of P){p.y+=o.speed*p.vy*dt;p.x+=(o.wind+Math.sin(t*.9+p.fl)*30)*dt;p.rot+=p.spin*dt;p.fl+=p.fs*dt;
+  if(p.y>H+30||p.x>W+40){p.y=rnd(-60,-20);p.x=rnd(-W*.3,W)}
+  c.save();c.translate(p.x,p.y);c.rotate(p.rot);c.scale(1,Math.cos(p.fl));c.fillStyle=p.c;shape(c,p.s);c.restore()}}}
+FX.petals=(S,o)=>faller(S,o,(c,s)=>{c.beginPath();c.moveTo(0,-s);c.bezierCurveTo(s*.9,-s*.6,s*.6,s*.8,0,s*.7);c.bezierCurveTo(-s*.6,s*.8,-s*.9,-s*.6,0,-s);c.globalAlpha=.9;c.fill()});
+FX.leaves=(S,o)=>faller(S,o,(c,s)=>{c.beginPath();c.moveTo(0,-s);c.bezierCurveTo(s*.8,-s*.5,s*.6,s*.6,0,s);c.bezierCurveTo(-s*.6,s*.6,-s*.8,-s*.5,0,-s);c.fill();
+ c.strokeStyle='rgba(60,20,10,.35)';c.lineWidth=.8;c.beginPath();c.moveTo(0,-s*.8);c.lineTo(0,s*1.3);c.stroke()});
+function bird(c,x,y,s,f){c.beginPath();c.moveTo(x-s,y-f*s*.6);c.quadraticCurveTo(x-s*.35,y-s*.15,x,y);c.quadraticCurveTo(x+s*.35,y-s*.15,x+s,y-f*s*.6);
+ c.quadraticCurveTo(x+s*.3,y+s*.06,x,y+s*.2);c.quadraticCurveTo(x-s*.3,y+s*.06,x-s,y-f*s*.6);c.fill()}
+FX.swallows=(S,o)=>{const K=H/900,sc=o.scale||1;const mk=init=>({x:init?rnd(-W*.1,W*.9):rnd(-W*.4,-40),y:rnd(H*.12,H*.45),v:o.glide?rnd(45,65):rnd(100,180),s:rnd(9,14)*K*sc,ph:rnd(0,TAU)});
+ const P=Array.from({length:o.n},()=>mk(1));
+ return(c,t)=>{const dt=S.dt;c.fillStyle=o.c;for(const p of P){p.x+=p.v*dt;p.y+=Math.cos(t*(o.glide?.5:1.3)+p.ph)*(o.glide?18:60)*dt;if(p.x>W+80)Object.assign(p,mk());
+  const f=o.glide?.15+Math.sin(t*1.2+p.ph)*.2:Math.sin(t*11+p.ph);bird(c,p.x,p.y,p.s,f)}}};
+FX.geese=(S,o)=>{const K=H/900;const mk=init=>({x:init?rnd(W*.3,W*.95):W+rnd(60,400),y:rnd(H*.12,H*.32),v:rnd(30,42),n:5+(Math.random()*4|0),s:rnd(5,7)*K});
+ const G=Array.from({length:o.n},(_, i)=>mk(i==0));
+ return(c,t)=>{const dt=S.dt;c.fillStyle=o.c;for(const g of G){g.x-=g.v*dt;if(g.x<-W*.3)Object.assign(g,mk());
+  for(let j=0;j<g.n;j++){const rank=Math.ceil(j/2),side=j%2?1:-1;bird(c,g.x+rank*g.s*3.4,g.y+side*rank*g.s*2+Math.sin(t*.8+j)*1.5,g.s,Math.sin(t*4.5+j*.7)*.8)}}}};
+FX.fireflies=(S,o)=>{const sp=glow(o.c);const P=Array.from({length:o.n},()=>({x:rnd(0,W),y:rnd(H*.4,H),vx:rnd(-15,15),vy:rnd(-10,10),ph:rnd(0,TAU),f:rnd(1,3),s:rnd(12,26)}));
+ return(c,t)=>{const dt=S.dt;for(const p of P){p.vx=clamp(p.vx*.99+rnd(-50,50)*dt,-30,30);p.vy=clamp(p.vy*.99+rnd(-50,50)*dt,-22,22);
+  p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.x<-20)p.x=W+20;if(p.x>W+20)p.x=-20;if(p.y<H*.3)p.vy+=6;if(p.y>H)p.vy-=6;
+  c.globalAlpha=.15+.85*Math.pow(.5+.5*Math.sin(t*p.f+p.ph),3);c.drawImage(sp,p.x-p.s/2,p.y-p.s/2,p.s,p.s)}}};
+FX.motes=(S,o)=>{const sp=glow(o.c);const P=Array.from({length:o.n},()=>({x:rnd(0,W),y:rnd(0,H),s:rnd(4,13),vy:-rnd(6,22),ph:rnd(0,TAU),f:rnd(.5,1.5)}));
+ return(c,t)=>{const dt=S.dt;for(const p of P){p.y+=p.vy*dt;p.x+=Math.sin(t*p.f+p.ph)*12*dt;if(p.y<-20){p.y=H+20;p.x=rnd(0,W)}
+  c.globalAlpha=.25+.55*(.5+.5*Math.sin(t*p.f*2+p.ph));c.drawImage(sp,p.x-p.s/2,p.y-p.s/2,p.s,p.s)}}};
+FX.wind=(S,o)=>{const mk=init=>({y:rnd(H*.1,H*.88),x:init?rnd(-W*.3,W*1.2):rnd(-W*.6,0),v:rnd(170,340),len:rnd(W*.15,W*.4),amp:rnd(6,24),fr:rnd(.004,.01),ph:rnd(0,TAU),w:rnd(.6,1.6)});
+ const L=Array.from({length:o.n},()=>mk(1));
+ return(c,t)=>{const dt=S.dt;for(const l of L){l.x+=l.v*dt;if(l.x-l.len>W)Object.assign(l,mk());const g=c.createLinearGradient(l.x-l.len,0,l.x,0);
+  g.addColorStop(0,rgba(o.c,0));g.addColorStop(.7,rgba(o.c,o.a));g.addColorStop(1,rgba(o.c,0));c.strokeStyle=g;c.lineWidth=l.w;c.beginPath();
+  for(let s=0;s<=l.len;s+=10){const px=l.x-l.len+s,py=l.y+Math.sin(px*l.fr+l.ph+t*.6)*l.amp;s?c.lineTo(px,py):c.moveTo(px,py)}c.stroke()}}};
+FX.heat=(S,o)=>{const L=Array.from({length:o.n},()=>({y:rnd(H*.35,H),ph:rnd(0,TAU),a:rnd(.08,.22),amp:rnd(2,5)}));
+ return(c,t)=>{const dt=S.dt;const g=c.createLinearGradient(0,H*.55,0,H);g.addColorStop(0,rgba(o.c,0));g.addColorStop(1,rgba(o.c,.2));c.fillStyle=g;c.fillRect(0,H*.55,W,H*.45);
+  c.strokeStyle=o.c;c.lineWidth=1.2;for(const l of L){l.y-=20*dt;if(l.y<H*.3)l.y=H+5;c.globalAlpha=l.a*clamp((l.y-H*.3)/(H*.3));c.beginPath();
+   for(let x=0;x<=W+16;x+=16){const y=l.y+Math.sin(x*.012+t*2.2+l.ph)*l.amp+Math.sin(x*.003+t*.7)*l.amp*2;x?c.lineTo(x,y):c.moveTo(x,y)}c.stroke()}}};
+FX.clouds=(S,o)=>{const sp=glow(o.c,1);const C=Array.from({length:o.n},()=>({x:rnd(-.2,1.1)*W,y:rnd(o.y[0],o.y[1])*H,s:rnd(.6,1.3)*H*(o.big?.11:.07),v:rnd(5,14),
+  P:Array.from({length:7+(Math.random()*5|0)},()=>({dx:rnd(-2.3,2.3),dy:-Math.abs(rnd(-.7,.7))*rnd(.5,1),r:rnd(.6,1.3)}))}));
+ return c=>{const dt=S.dt;c.globalAlpha=o.a;for(const cl of C){cl.x+=cl.v*dt;if(cl.x-cl.s*4>W)cl.x=-cl.s*4;
+  for(const p of cl.P){const r=p.r*cl.s*1.7;c.drawImage(sp,cl.x+p.dx*cl.s-r,cl.y+p.dy*cl.s-r,r*2,r*2)}}}};
+FX.mist=(S,o)=>{const sp=glow(S.d.sky[1],1);const B=Array.from({length:o.n},()=>({x:rnd(-.3,1.3)*W,y:rnd(o.y[0],o.y[1])*H,w:rnd(.5,1.1)*W,h:rnd(.04,.1)*H,v:rnd(4,14),a:rnd(.5,1)*(o.a||.45)}));
+ return c=>{const dt=S.dt;for(const b of B){b.x+=b.v*dt;if(b.x-b.w/2>W)b.x=-b.w/2;c.globalAlpha=b.a;c.drawImage(sp,b.x-b.w/2,b.y-b.h/2,b.w,b.h)}}};
+FX.ripples=(S,o)=>{const R=[];let acc=0;
+ return c=>{const dt=S.dt;acc+=dt*o.rate;while(acc>1){acc--;R.push({x:rnd(0,W),y:rnd(S.hz+6,H),r:0,m:rnd(18,55)})}
+  c.lineWidth=1;for(let i=R.length-1;i>=0;i--){const r=R[i];r.r+=24*dt;const a=1-r.r/r.m;if(a<=0){R.splice(i,1);continue}
+   const k=(r.y-S.hz)/(H-S.hz)+.3;c.strokeStyle=rgba(o.c,a*.55);c.beginPath();c.ellipse(r.x,r.y,r.r*k*1.6,r.r*k*.32,0,0,TAU);c.stroke()}}};
+function lotusFlower(c,x,y,s,col,t){c.strokeStyle=rgba('#2f5a3c',.9);c.lineWidth=Math.max(1,s*.06);c.beginPath();c.moveTo(x,y+s*.6);c.lineTo(x,y);c.stroke();
+ for(const a of[-1,1,-.5,.5,0]){c.save();c.translate(x,y);c.rotate(a*.6+Math.sin(t*.7)*.03);c.beginPath();c.moveTo(0,0);c.bezierCurveTo(s*.45,-s*.3,s*.3,-s*.9,0,-s*1.2);
+  c.bezierCurveTo(-s*.3,-s*.9,-s*.45,-s*.3,0,0);c.fillStyle=col;c.globalAlpha=a==0?1:.85;c.fill();c.strokeStyle='rgba(255,255,255,.35)';c.lineWidth=.8;c.stroke();c.restore()}}
+FX.lotus=(S,o)=>{const P=[];for(let i=0;i<o.n;i++){const y=rnd(S.hz+H*.02,H*1.02),k=(y-S.hz)/(H-S.hz);P.push({x:rnd(-20,W+20),y,r:H*(.016+k*.05),ph:rnd(0,TAU),rot:rnd(-.3,.3),notch:rnd(0,TAU),fl:Math.random()<.2})}
+ P.sort((a,b)=>a.y-b.y);
+ return(c,t)=>{for(const p of P){const by=Math.sin(t*.8+p.ph)*p.r*.05;c.globalAlpha=1;c.fillStyle=o.pad;c.beginPath();c.ellipse(p.x,p.y+by,p.r,p.r*.3,p.rot*.2,p.notch+.25,p.notch+6.03);
+  c.lineTo(p.x,p.y+by);c.closePath();c.fill();c.strokeStyle=o.pad2;c.lineWidth=1;c.stroke();if(p.fl)lotusFlower(c,p.x+p.r*.1,p.y+by-p.r*.55,p.r*.5,o.fl,t+p.ph)}}};
+FX.grass=(S,o)=>{const P=Array.from({length:o.n},()=>({x:rnd(-20,W+20),h:rnd(o.h[0],o.h[1])*H,c:pick(o.c),ec:o.earc?pick(o.earc):null,ph:rnd(0,TAU),w:rnd(1,2.4),dew:o.dew&&Math.random()<.45,f:rnd(.6,1.6)}));
+ P.sort((a,b)=>a.h-b.h);
+ return(c,t)=>{c.lineCap='round';for(const s of P){const sw=Math.sin(t*1.4+s.x*.006+s.ph*.2)*o.wind+Math.sin(t*.5+s.x*.002)*o.wind*.6;
+  const tx=s.x+sw*s.h,ty=H-s.h*(1-.5*sw*sw),cx=s.x+sw*s.h*.15,cy=H-s.h*.55;
+  c.strokeStyle=s.c;c.lineWidth=s.w;c.beginPath();c.moveTo(s.x,H+2);c.quadraticCurveTo(cx,cy,tx,ty);c.stroke();
+  if(o.ear){const a=Math.atan2(ty-cy,tx-cx),L=s.h*.12,ex=tx+Math.cos(a)*L*.4,ey=ty+Math.sin(a)*L*.4;c.fillStyle=s.ec;c.beginPath();c.ellipse(ex,ey,L*.55,s.w*1.1+1,a,0,TAU);c.fill();
+   if(o.awn){c.strokeStyle=rgba(s.ec,.7);c.lineWidth=.6;c.beginPath();for(let k=-2;k<=2;k++){const bx=ex+Math.cos(a)*L*.15*k,by=ey+Math.sin(a)*L*.15*k,aa=a+(k<0?-.35:k>0?.35:0)*(1+Math.abs(k)*.3);
+    c.moveTo(bx,by);c.lineTo(bx+Math.cos(aa)*L*.9,by+Math.sin(aa)*L*.9)}c.stroke()}}
+  if(s.dew){const r=1.4+s.w*.7;c.fillStyle='rgba(255,255,255,.85)';c.beginPath();c.arc(tx,ty,r,0,TAU);c.fill();
+   const gl=Math.pow(Math.max(0,Math.sin(t*s.f+s.ph)),24);if(gl>.02){c.strokeStyle=`rgba(255,255,255,${gl})`;c.lineWidth=1;const L=10*gl+2;c.beginPath();c.moveTo(tx-L,ty);c.lineTo(tx+L,ty);c.moveTo(tx,ty-L);c.lineTo(tx,ty+L);c.stroke()}}}}};
+FX.frost=(S,o)=>{const P=Array.from({length:o.n},()=>({x:rnd(0,W),y:rnd(H*.8,H),s:rnd(.015,.045)*H,rot:rnd(0,1),d:rnd(0,2.5)}));
+ return c=>{const g=c.createLinearGradient(0,H*.72,0,H);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(1,'rgba(255,255,255,.5)');c.fillStyle=g;c.fillRect(0,H*.72,W,H*.28);
+  c.strokeStyle='rgba(255,255,255,.88)';c.lineCap='round';for(const p of P){const k=ease(clamp((S.age-p.d)/2.5));if(k<=0)continue;c.lineWidth=Math.max(.8,p.s*.03);c.beginPath();
+   for(let a=0;a<6;a++){const an=p.rot+a*Math.PI/3,cx=Math.cos(an),sy=Math.sin(an),L=p.s*k;c.moveTo(p.x,p.y);c.lineTo(p.x+cx*L,p.y+sy*L);
+    for(const f of[.4,.65,.85]){if(k<f*.8)continue;const bx=p.x+cx*L*f,by=p.y+sy*L*f,bl=p.s*k*.3*(1.2-f);for(const sd of[-1,1]){const a2=an+sd*Math.PI/3;c.moveTo(bx,by);c.lineTo(bx+Math.cos(a2)*bl,by+Math.sin(a2)*bl)}}}
+   c.stroke()}}};
+FX.plum=(S,o)=>{const segs=[],bl=[],V=H*.7;
+ function br(x,y,a,len,w,d,t0){const x2=x+Math.cos(a)*len,y2=y+Math.sin(a)*len,t1=t0+len/V;segs.push({x,y,x2,y2,w,t0,t1});
+  if(d>0){br(x2,y2,a+rnd(-.45,.45),len*rnd(.62,.82),w*.68,d-1,t1);if(Math.random()<.65)br(x2,y2,a+(Math.random()<.5?-1:1)*rnd(.5,1),len*rnd(.45,.65),w*.6,d-1-(Math.random()<.5?1:0),t1)}
+  if(d<=2){const nb=1+(Math.random()*2|0);for(let j=0;j<nb;j++){const f=rnd(.3,1);bl.push({x:x+(x2-x)*f+rnd(-3,3),y:y+(y2-y)*f+rnd(-3,3),t:t0+(t1-t0)*f+rnd(.2,.8),r:H*rnd(.008,.014),rot:rnd(0,TAU),c:pick(o.fl),bud:Math.random()<.25})}}}
+ br(W*.6,-8,1.95,H*.2,H*.016,5,0);br(W*.74,-8,1.35,H*.16,H*.012,4,.4);
+ return c=>{const A=S.age;c.lineCap='round';c.strokeStyle=o.c;for(const s of segs){if(A<s.t0)continue;const k=clamp((A-s.t0)/(s.t1-s.t0));c.lineWidth=s.w;c.beginPath();c.moveTo(s.x,s.y);c.lineTo(s.x+(s.x2-s.x)*k,s.y+(s.y2-s.y)*k);c.stroke()}
+  for(const b of bl){const k=ease(clamp((A-b.t)/.6));if(k<=0)continue;c.fillStyle=b.c;c.beginPath();
+   if(b.bud)c.arc(b.x,b.y,b.r*.45*k,0,TAU);else for(let j=0;j<5;j++){const a=b.rot+j*1.2566,px=b.x+Math.cos(a)*b.r*.55*k,py=b.y+Math.sin(a)*b.r*.55*k;c.moveTo(px+b.r*.5*k,py);c.arc(px,py,b.r*.5*k,0,TAU)}
+   c.fill();if(!b.bud){c.fillStyle='#f3d36b';c.beginPath();c.arc(b.x,b.y,b.r*.18*k,0,TAU);c.fill()}}}};
+FX.chrys=(S,o)=>{const K=H/900;const F=Array.from({length:o.n},(_,i)=>({x:W*(.42+i/o.n*.36)+rnd(-20,20),y:H*rnd(.8,.93),r:rnd(16,30)*K,ph:rnd(0,TAU),d:rnd(0,1.2),c:pick(['#e8b931','#f0c94a','#dca02a'])}));
+ return(c,t)=>{for(const f of F){const k=ease(clamp((S.age-f.d)/1.6)),sw=Math.sin(t*.9+f.ph)*4,fx=f.x+sw,fy=f.y;
+  c.strokeStyle='#26302a';c.lineWidth=1.6;c.beginPath();c.moveTo(f.x-6,H+2);c.quadraticCurveTo(f.x,(fy+H)/2,fx,fy);c.stroke();if(k<=0)continue;
+  for(const [n,rr,col] of[[22,1,f.c],[16,.65,mix(f.c,'#fff6c8',.35)]]){c.fillStyle=col;for(let j=0;j<n;j++){const a=j/n*TAU+f.ph+rr;c.beginPath();
+   c.ellipse(fx+Math.cos(a)*f.r*rr*.5*k,fy+Math.sin(a)*f.r*rr*.5*k,f.r*rr*.5*k,f.r*.09*k+.5,a,0,TAU);c.fill()}}
+  c.fillStyle='#b5761c';c.beginPath();c.arc(fx,fy,f.r*.15*k,0,TAU);c.fill()}}};
+FX.stars=(S,o)=>{const P=Array.from({length:o.n},()=>({x:rnd(0,W),y:Math.pow(Math.random(),1.5)*H*.62,r:rnd(.3,1.4),ph:rnd(0,TAU),f:rnd(.5,2.2),b:rnd(.4,1)}));let sh=null;
+ return(c,t)=>{const dt=S.dt,fade=clamp(S.age/1.5);c.fillStyle='#ffffff';for(const p of P){c.globalAlpha=(.35+.65*(.5+.5*Math.sin(t*p.f+p.ph)))*p.b*fade;c.beginPath();c.arc(p.x,p.y,p.r,0,TAU);c.fill()}
+  if(o.shoot){if(!sh&&Math.random()<dt*.4)sh={x:rnd(W*.35,W),y:rnd(0,H*.25),vx:-rnd(500,800),vy:rnd(180,300),life:1};
+   if(sh){sh.x+=sh.vx*dt;sh.y+=sh.vy*dt;sh.life-=dt*1.3;const ex=sh.x-sh.vx*.18,ey=sh.y-sh.vy*.18,g=c.createLinearGradient(sh.x,sh.y,ex,ey);
+    g.addColorStop(0,`rgba(255,255,255,${Math.max(0,sh.life)})`);g.addColorStop(1,'rgba(255,255,255,0)');c.globalAlpha=1;c.strokeStyle=g;c.lineWidth=1.5;c.beginPath();c.moveTo(sh.x,sh.y);c.lineTo(ex,ey);c.stroke();if(sh.life<=0)sh=null}}}};
+FX.rays=(S,o)=>c=>{const p=S.op;if(!p)return;const L=Math.max(W,H)*1.1;c.translate(p.x,p.y);c.rotate(S.age*.03);const g=c.createRadialGradient(0,0,p.r,0,0,L);
+ g.addColorStop(0,rgba(o.c,.16));g.addColorStop(1,rgba(o.c,0));c.fillStyle=g;for(let i=0;i<o.n;i++){c.rotate(TAU/o.n);const w=.035+.025*Math.sin(i*2.3);c.beginPath();c.moveTo(0,0);c.lineTo(Math.cos(-w)*L,Math.sin(-w)*L);c.lineTo(Math.cos(w)*L,Math.sin(w)*L);c.fill()}};
+FX.rainbow=(S,o)=>c=>{const k=clamp(S.age/3)*o.a,cx=W*.62,cy=H*.98,R0=H*.66,lw=H*.011;c.lineWidth=lw;
+ ['#e45a5a','#ef9a4c','#f2d86a','#7cc47c','#5aa0d8','#7a6cc8'].forEach((col,i)=>{c.strokeStyle=rgba(col,k*.2);c.beginPath();c.arc(cx,cy,R0-i*lw,Math.PI,TAU);c.stroke()})};
+FX.lightning=(S,o)=>{let next=rnd(.6,1.4),tau=9,bolt=null;
+ function mkBolt(){const P=[];let x=rnd(W*.35,W*.9),y=-5;P.push([x,y]);while(y<H*.62){y+=rnd(12,34);x+=rnd(-28,28);P.push([x,y])}
+  const B=[P];for(let b=0;b<2;b++){const s=P[2+(Math.random()*(P.length-4)|0)];let[x2,y2]=s;const Q=[[x2,y2]];const dir=Math.random()<.5?-1:1;for(let j=0;j<6;j++){y2+=rnd(10,24);x2+=dir*rnd(4,22);Q.push([x2,y2])}B.push(Q)}return B}
+ return c=>{const dt=S.dt;next-=dt;tau+=dt;if(next<=0){next=rnd(1.8,3.6);tau=0;bolt=mkBolt()}
+  const I=tau<.07?1:tau<.15?.25:tau<.24?.85:Math.exp(-(tau-.24)*5);if(I<.01)return;
+  c.fillStyle=`rgba(225,228,255,${I*.42})`;c.fillRect(0,0,W,H);if(bolt&&tau<.6){c.strokeStyle=`rgba(255,255,255,${I})`;c.shadowColor='#c9d4ff';c.shadowBlur=18;
+   bolt.forEach((Q,qi)=>{c.lineWidth=qi?1:2.2;c.beginPath();Q.forEach(([x,y],j)=>j?c.lineTo(x,y):c.moveTo(x,y));c.stroke()});c.shadowBlur=0}}};
+const BACK=new Set(['stars','rays','rainbow','lightning']);
+
+/* ============================== 场景 ============================== */
+function makeRidge(rng,sharp){const cs=[];let f=1+rng()*1.6,a=1,sum=0;for(let k=0;k<5;k++){cs.push({f:f*Math.PI,a,p:rng()*TAU});sum+=a;f*=1.9+rng()*.5;a*=.48}
+ return u=>{let s=0;for(const c of cs){const v=Math.sin(c.f*u+c.p);s+=c.a*(sharp*(1-Math.abs(v))+(1-sharp)*(v*.5+.5))}return s/sum}}
+class Scene{
+ constructor(i){this.i=i;this.d=T[i];this.age=0;this.dt=0;this.build()}
+ build(){const d=this.d,rng=mulberry(this.i*7919+13);this.hz=d.water?H*.74:H;
+  const base=d.water?[.56,.64,.715]:[.57,.68,.8],amp=d.water?[.11,.08,.05]:[.12,.085,.06];
+  this.layers=d.mt.map((col,k)=>({col,b:base[k],a:amp[k],v:[3,7,14][k],ridge:makeRidge(rng,d.sharp*(k==2?.6:1))}));
+  const mk=([n,o])=>({n,f:FX[n](this,o)});const pre=(d.pre||[]).map(mk);
+  this.preB=pre.filter(e=>BACK.has(e.n));this.preF=pre.filter(e=>!BACK.has(e.n));this.fx=(d.fx||[]).map(mk);
+  this.shim=Array.from({length:44},()=>({y:Math.random(),x:Math.random()*W,w:rnd(20,120),v:rnd(4,14)}))}
+ run(list,c){for(const e of list){c.save();e.f(c,this.age);c.restore()}}
+ orb(c,p,o){const g=c.createRadialGradient(p.x,p.y,p.r*.5,p.x,p.y,p.r*7);g.addColorStop(0,rgba(o.g,.7));g.addColorStop(.25,rgba(o.g,.2));g.addColorStop(1,rgba(o.g,0));
+  c.fillStyle=g;c.fillRect(p.x-p.r*7,p.y-p.r*7,p.r*14,p.r*14);c.fillStyle=o.c;c.beginPath();c.arc(p.x,p.y,p.r,0,TAU);c.fill();
+  if(o.m){c.fillStyle='rgba(120,110,90,.08)';for(const[a,b,r]of[[-.3,-.2,.28],[.25,.1,.2],[-.05,.38,.16],[.36,-.34,.12]]){c.beginPath();c.arc(p.x+a*p.r,p.y+b*p.r,r*p.r,0,TAU);c.fill()}}}
+ layer(c,L,t,bottom){c.fillStyle=L.col;c.beginPath();c.moveTo(-2,bottom);const off=t*L.v;for(let x=-2;x<=W+6;x+=5)c.lineTo(x,H*(L.b-L.a*L.ridge((x+off)/W)*1.4));c.lineTo(W+6,bottom);c.fill()}
+ render(c,dt){const d=this.d;this.dt=dt;this.age+=dt;const t=this.age;this.c=c;
+  const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,d.sky[0]);g.addColorStop(1,d.sky[1]);c.fillStyle=g;c.fillRect(0,0,W,H);
+  this.op=d.orb?{x:d.orb.x*W,y:(d.orb.y-Math.min(t,15)*.002)*H,r:d.orb.r*H}:null;
+  this.run(this.preB,c);if(d.orb)this.orb(c,this.op,d.orb);this.run(this.preF,c);
+  const bottom=d.water?this.hz:H+2;
+  this.layers.forEach((L,k)=>{this.layer(c,L,t,bottom);if(k<2){const y0=H*(L.b-L.a*.9),y1=H*(L.b+.05),m=c.createLinearGradient(0,y0,0,y1);
+   m.addColorStop(0,rgba(d.sky[1],0));m.addColorStop(1,rgba(d.sky[1],.55));c.fillStyle=m;c.fillRect(0,y0,W,H-y0)}});
+  if(d.water)this.water(c,t,dt);
+  this.run(this.fx,c)}
+ water(c,t,dt){const d=this.d,hz=this.hz,g=c.createLinearGradient(0,hz,0,H);g.addColorStop(0,mix(d.sky[1],d.mt[2],.3));g.addColorStop(1,mix(d.sky[0],d.mt[2],.65));c.fillStyle=g;c.fillRect(0,hz,W,H-hz);
+  c.save();c.beginPath();c.rect(0,hz,W,H-hz);c.clip();c.translate(0,hz*2);c.scale(1,-1);c.globalAlpha=.3;if(d.orb)this.orb(c,this.op,d.orb);this.layers.forEach(L=>this.layer(c,L,t,hz));c.restore();
+  c.strokeStyle='rgba(255,255,255,.2)';c.lineWidth=1;c.beginPath();for(const s of this.shim){s.x+=s.v*dt;if(s.x>W+s.w)s.x=-s.w;const y=hz+(H-hz)*s.y,w=s.w*(.3+s.y);c.moveTo(s.x,y);c.lineTo(s.x+w,y)}c.stroke();
+  c.fillStyle='rgba(255,255,255,.22)';c.fillRect(0,hz,W,1);
+  if(d.orb){const p=this.op;for(let j=0;j<16;j++){const y=hz+4+(j/16)*(H-hz)*.9,w=p.r*(1.5-j*.05)*(.5+.5*Math.sin(t*2+j*1.7));c.fillStyle=rgba(d.orb.c,.4*(1-j/16));c.fillRect(p.x-w/2,y,w,1.5)}}}
+}
+
+/* ============================== 界面 ============================== */
+const $=id=>document.getElementById(id);
+const ui=$('ui'),nameEl=$('name'),seal=$('seal'),hou=$('hou'),info=$('info'),wrot=$('wrot'),bar=$('bar'),rule=$('rule');
+(function grain(){const s=220,c=document.createElement('canvas');c.width=c.height=s;const g=c.getContext('2d'),im=g.createImageData(s,s);
+ for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}g.putImageData(im,0,0);$('grain').style.backgroundImage=`url(${c.toDataURL()})`})();
+(function wheel(){const P=(r,a)=>{const th=(180+a)*Math.PI/180;return[50+r*Math.cos(th),50+r*Math.sin(th)]};let s='<svg viewBox="0 0 100 100"><g fill="none" stroke="currentColor">';
+ s+='<circle cx="50" cy="50" r="47" stroke-width=".08" opacity=".7"/><circle cx="50" cy="50" r="30.5" stroke-width=".06" opacity=".5"/>';
+ for(let k=0;k<72;k++){const a=k*5,maj=k%3==0,[x1,y1]=P(maj?45.6:46.3,a),[x2,y2]=P(47,a);s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="${maj?.12:.06}" opacity="${maj?.9:.5}"/>`}
+ for(let q=0;q<4;q++){const[x1,y1]=P(29,q*90+3),[x2,y2]=P(29,q*90+87);s+=`<path d="M${x1} ${y1} A29 29 0 0 1 ${x2} ${y2}" stroke-width=".3" opacity=".35"/>`}
+ s+='</g></svg>';T.forEach((d,i)=>s+=`<div class="lab" data-i="${i}" style="transform:rotate(${i*15}deg) translate(-44vh,-50%)">${d.n}</div>`);
+ for(let q=0;q<4;q++)s+=`<div class="sea" style="transform:rotate(${(q*6+2.5)*15}deg) translate(-26vh,-50%)">${SEASON[q]}</div>`;wrot.innerHTML=s})();
+const labs=[...document.querySelectorAll('.lab')];
+let rot=0;
+function updateUI(i,dir){const d=T[i];ui.style.color=d.ink;const dark=hex2rgb(d.ink).reduce((a,b)=>a+b)>384;ui.style.setProperty('--halo',rgba(dark?d.mt[2]:d.sky[1],.85));
+ nameEl.innerHTML=[...d.n].map((ch,k)=>`<span style="animation-delay:${.2+k*.22}s">${ch}</span>`).join('');
+ seal.textContent=SEASON[d.s];seal.classList.remove('on');rule.style.animation='none';void seal.offsetWidth;seal.classList.add('on');rule.style.animation='';
+ hou.innerHTML=d.hou.map((h,k)=>`<p style="animation-delay:${.75+k*.16}s"><em>${['初候','二候','三候'][k]}</em>${h}</p>`).join('');
+ const n=String(i+1).padStart(2,'0');
+ info.innerHTML=[`<div class="num">${n}<small>/ 24</small></div>`,`<div class="py">${d.py}</div>`,`<div class="en">${d.en}</div>`,`<div class="desc">${d.desc}</div>`,
+  `<div class="date">公历 ${cnNum(d.md[0])}月${cnNum(d.md[1])}日前后　·　${SEASON[d.s]}之${['孟','孟','仲','仲','季','季'][i%6]}</div>`]
+  .map((h,k)=>h.replace('">',`" style="animation-delay:${.5+k*.12}s">`)).join('');
+ labs.forEach((l,k)=>l.classList.toggle('on',k==i));
+ if(dir==null){rot=-i*15;wrot.style.transition='none';wrot.style.transform=`rotate(${rot}deg)`;void wrot.offsetWidth;wrot.style.transition=''}
+ else{const dl=((-i*15-rot)%360+540)%360-180;rot+=dl;wrot.style.transform=`rotate(${rot}deg)`}}
+
+/* ============================== 主循环 ============================== */
+const cvs=[...document.querySelectorAll('canvas.layer')],ctxs=cvs.map(c=>c.getContext('2d'));
+const slots=[{scene:null},{scene:null}];let front=0,idx=0,elapsed=0,fadeT=0,last=performance.now();
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cvs.forEach((c,k)=>{c.width=W*DPR;c.height=H*DPR;ctxs[k].setTransform(DPR,0,0,DPR,0,0)});slots.forEach(s=>s.scene&&s.scene.build())}
+function show(i,dir){idx=(i+24)%24;const nf=1-front,old=cvs[front],nw=cvs[nf];
+ old.style.transition='none';if(slots[front].scene)old.style.opacity=1;old.style.zIndex=1;
+ nw.style.transition='none';nw.style.opacity=0;nw.style.zIndex=2;slots[nf].scene=new Scene(idx);
+ void nw.offsetWidth;nw.style.transition='opacity 1.4s ease';nw.style.opacity=1;front=nf;fadeT=1.5;elapsed=0;updateUI(idx,dir)}
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;if(elapsed>=DUR)show(idx+1,1);
+ slots.forEach((s,k)=>{if(s.scene)s.scene.render(ctxs[k],dt)});
+ if(fadeT>0){fadeT-=dt;if(fadeT<=0)slots[1-front].scene=null}
+ bar.style.transform=`scaleX(${Math.min(1,elapsed/DUR)})`;requestAnimationFrame(loop)}
+function todayIdx(){const now=new Date(),y=now.getFullYear();let best=-1,bt=-Infinity;T.forEach((x,i)=>{const t=new Date(y,x.md[0]-1,x.md[1]).getTime();if(t<=now&&t>bt){bt=t;best=i}});return best<0?21:best}
+addEventListener('resize',resize);
+addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowRight'){e.preventDefault();show(idx+1,1)}else if(e.code==='ArrowLeft'){e.preventDefault();show(idx-1,-1)}});
+addEventListener('click',()=>show(idx+1,1));
+resize();show(todayIdx());requestAnimationFrame(loop);
+</script>
+</body>
+</html>

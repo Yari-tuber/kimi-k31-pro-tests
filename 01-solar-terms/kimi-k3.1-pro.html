@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ececdf">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23ececdf'/%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23b9543f' stroke-width='2'/%3E%3Cpath d='M32 10v44M10 32h44' stroke='%2324362d' stroke-width='2'/%3E%3C/svg%3E">
+<title>岁时 · 二十四节气</title>
+<style>
+  :root{--paper:#ececdf;--ink:#24362d;--muted:#697269;--accent:#b9543f;--wash:#dce3d1;--line:rgba(36,54,45,.22);--serif:"Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;--sans:"PingFang SC","Microsoft YaHei",sans-serif}
+  *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:var(--paper);color:var(--ink);font-family:var(--sans);transition:background 1.2s,color 1.2s;-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit}button:focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  #app{position:relative;width:100%;height:100%;height:100svh;isolation:isolate;background:var(--paper);transition:background 1.2s}
+  #app:before{content:"";position:absolute;inset:0;z-index:20;pointer-events:none;opacity:.22;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E")}
+  .chrome{position:absolute;z-index:12;left:clamp(24px,4vw,68px);right:clamp(24px,4vw,68px);display:flex;align-items:center;justify-content:space-between}
+  .top{top:clamp(22px,4vh,44px);height:36px;border-bottom:1px solid var(--line);padding-bottom:18px}
+  .brand{display:flex;align-items:center;gap:13px;font-family:var(--serif);font-size:17px;letter-spacing:.28em;font-weight:600}
+  .brand-seal{display:grid;place-items:center;width:27px;height:27px;border:1px solid var(--accent);color:var(--accent);font-size:13px;letter-spacing:0;transform:rotate(-4deg)}
+  .brand small{font:9px/1.4 var(--sans);letter-spacing:.2em;opacity:.58;font-weight:400}
+  .chapter{display:flex;gap:20px;align-items:center;font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+  .chapter b{font-weight:500;color:var(--accent)}
+  .chapter .rule{width:44px;height:1px;background:var(--line)}
+  .scenes{position:absolute;inset:0}
+  .scene{position:absolute;inset:0;visibility:hidden;opacity:0;background:var(--paper);transition:opacity .8s ease,visibility 0s .8s;--paper:#ececdf;--ink:#24362d;--accent:#b9543f;--wash:#dce3d1;--line:rgba(36,54,45,.22)}
+  .scene.active{visibility:visible;opacity:1;transition:opacity .8s ease;z-index:2}
+  .scene.leaving{visibility:visible;opacity:0;z-index:1;transition:opacity .8s ease}
+  .scene-inner{height:100%;display:grid;grid-template-columns:minmax(280px,38%) 1fr;align-items:center;gap:2vw;max-width:1600px;margin:auto;padding:clamp(92px,13vh,138px) clamp(24px,5vw,82px) clamp(116px,17vh,164px)}
+  .copy{position:relative;z-index:3;align-self:center;padding-left:clamp(0px,2vw,30px)}
+  .eyebrow{display:flex;align-items:center;gap:12px;font-size:10px;letter-spacing:.28em;color:var(--accent);margin-bottom:clamp(16px,3vh,32px)}
+  .eyebrow:before{content:"";width:28px;height:1px;background:currentColor}
+  .term-row{display:flex;align-items:flex-start;gap:20px}
+  .term{font-family:var(--serif);font-size:clamp(72px,9.3vw,150px);line-height:.95;letter-spacing:.045em;font-weight:500;margin:0 0 18px;white-space:nowrap}
+  .term-index{font:10px/1 var(--sans);letter-spacing:.12em;border-top:1px solid var(--accent);padding-top:8px;margin-top:8px;color:var(--accent)}
+  .english{font:10px/1.5 var(--sans);letter-spacing:.32em;text-transform:uppercase;margin:0 0 clamp(18px,3vh,30px);opacity:.65}
+  .poem{font-family:var(--serif);font-size:clamp(14px,1.2vw,18px);letter-spacing:.18em;line-height:1.9;margin:0;max-width:25em}
+  .date{display:flex;align-items:center;gap:12px;margin-top:clamp(18px,3vh,30px);font-size:10px;letter-spacing:.2em;opacity:.62}
+  .date i{display:block;width:3px;height:3px;background:var(--accent);border-radius:50%}
+  .art{position:relative;height:100%;min-height:340px;display:grid;place-items:center}
+  .big-index{position:absolute;right:-.02em;top:48%;transform:translateY(-50%);font-family:Georgia,serif;font-size:clamp(180px,30vw,480px);line-height:.7;color:transparent;-webkit-text-stroke:1px var(--line);opacity:.42;letter-spacing:-.08em;pointer-events:none}
+  .art svg{position:relative;width:min(100%,760px);height:min(100%,700px);overflow:visible;filter:drop-shadow(0 18px 30px rgba(36,44,35,.05))}
+  .scene.active .copy>*{animation:copyIn .85s both cubic-bezier(.2,.75,.2,1)}
+  .scene.active .copy>*:nth-child(2){animation-delay:.08s}.scene.active .copy>*:nth-child(3){animation-delay:.15s}.scene.active .copy>*:nth-child(4){animation-delay:.22s}.scene.active .copy>*:nth-child(5){animation-delay:.28s}
+  .scene.active .art svg{animation:artIn 1.2s both cubic-bezier(.18,.8,.2,1)}
+  @keyframes copyIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+  @keyframes artIn{from{opacity:0;transform:translateY(20px) scale(.965)}to{opacity:1;transform:none}}
+  .line{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.fine{fill:none;stroke:var(--ink);stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round}.accent-line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round}.fill{fill:var(--ink)}.accent{fill:var(--accent)}.paper{fill:var(--paper)}.wash{fill:var(--wash)}.soft{opacity:.35}.faint{opacity:.16}
+  .scene.active .drift{animation:drift 5s ease-in-out infinite}.scene.active .sway{transform-box:fill-box;transform-origin:bottom center;animation:sway 3.8s ease-in-out infinite}.scene.active .float{transform-box:fill-box;transform-origin:center;animation:float 4.2s ease-in-out infinite}.scene.active .pulse{transform-box:fill-box;transform-origin:center;animation:pulse 3s ease-in-out infinite}.scene.active .spin{transform-box:fill-box;transform-origin:center;animation:spin 22s linear infinite}.scene.active .rain{animation:rain 1.5s linear infinite}.scene.active .snow{transform-box:fill-box;transform-origin:center;animation:snow 4s linear infinite}.scene.active .draw{stroke-dasharray:500;stroke-dashoffset:500;animation:draw 2.2s .25s forwards ease}.scene.active .ripple{transform-box:fill-box;transform-origin:center;animation:ripple 2.8s ease-out infinite}.scene.active .wing{transform-box:fill-box;transform-origin:right center;animation:wing .9s ease-in-out infinite alternate}
+  @keyframes drift{50%{translate:12px 0}}@keyframes sway{50%{rotate:2.5deg}}@keyframes float{50%{translate:0 -10px}}@keyframes pulse{50%{scale:1.06;opacity:.75}}@keyframes spin{to{rotate:360deg}}@keyframes rain{from{translate:0 -16px;opacity:0}25%{opacity:.65}to{translate:0 36px;opacity:0}}@keyframes snow{from{translate:0 -15px;rotate:0deg;opacity:0}20%{opacity:.8}to{translate:18px 50px;rotate:120deg;opacity:0}}@keyframes draw{to{stroke-dashoffset:0}}@keyframes ripple{from{scale:.7;opacity:.7}to{scale:1.25;opacity:0}}@keyframes wing{to{rotate:18deg}}
+  .bottom{bottom:clamp(20px,3.5vh,38px);align-items:flex-end;gap:30px}
+  .timeline{width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(12px,2.4vw,38px)}
+  .season-group{position:relative;padding-top:16px;border-top:1px solid var(--line)}
+  .season-label{position:absolute;top:-16px;left:0;font:9px/1 var(--sans);letter-spacing:.24em;opacity:.65;background:var(--paper);padding-right:10px;transition:background 1.2s}
+  .ticks{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+  .tick{position:relative;border:0;background:transparent;padding:8px 0 2px;cursor:pointer;height:20px;opacity:.36;transition:opacity .3s}
+  .tick:before{content:"";position:absolute;left:0;right:0;top:7px;height:2px;background:var(--ink);transition:background .3s,transform .3s}
+  .tick:hover,.tick.active{opacity:1}.tick.active:before{background:var(--accent);transform:scaleY(2)}
+  .tick:after{content:attr(data-name);position:absolute;bottom:18px;left:50%;transform:translateX(-50%) translateY(4px);white-space:nowrap;font-family:var(--serif);font-size:12px;background:var(--ink);color:var(--paper);padding:5px 8px;opacity:0;pointer-events:none;transition:.2s}
+  .tick:hover:after{opacity:1;transform:translateX(-50%) translateY(0)}
+  .controls{display:flex;align-items:center;gap:9px;flex:none}
+  .control{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:transparent;display:grid;place-items:center;cursor:pointer;transition:background .25s,border-color .25s}
+  .control:hover{background:var(--wash);border-color:var(--accent)}
+  .control svg{width:13px;height:13px;fill:currentColor}
+  .next{width:auto;border-radius:22px;padding:0 17px;gap:10px;display:flex;font-size:10px;letter-spacing:.15em}
+  .hint{position:absolute;right:0;bottom:52px;font-size:8px;letter-spacing:.18em;opacity:.48;white-space:nowrap}
+  .progress{position:absolute;left:0;right:0;bottom:-11px;height:1px;background:var(--line);overflow:hidden}
+  .progress i{display:block;width:100%;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  @media(max-width:800px){
+    .brand small,.chapter .rule,.chapter span:first-child,.hint{display:none}.top{top:20px}.chapter{font-size:9px;gap:8px}
+    .scene-inner{grid-template-columns:1fr;grid-template-rows:1fr auto;padding:88px 24px 118px;gap:0}
+    .art{grid-row:1;min-height:0}.art svg{height:100%;max-height:48vh;width:100%}.big-index{font-size:52vw;right:4%;top:40%}
+    .copy{grid-row:2;padding:0;display:grid;grid-template-columns:1fr auto;align-items:end}.eyebrow{grid-column:1/-1;margin-bottom:10px}.term-row{grid-column:1}.term{font-size:clamp(54px,15vw,88px);margin-bottom:5px}.english{grid-column:1;margin:0;font-size:8px}.poem{grid-column:2;grid-row:2/4;text-align:right;font-size:12px;max-width:14em}.date{display:none}
+    .bottom{left:24px;right:24px;bottom:24px}.timeline{gap:10px}.season-label{font-size:8px}.controls{gap:5px}.next{width:38px;padding:0;justify-content:center}.next span{display:none}.control{width:34px;height:34px}.season-group{padding-top:12px}.ticks{gap:3px}
+  }
+  @media(max-width:480px){.poem{display:none}.copy{display:block}.term-row{margin-bottom:6px}.art svg{max-height:43vh}.timeline{gap:7px}.ticks{gap:2px}.bottom{gap:12px}.season-label{letter-spacing:.12em}.term-index{display:none}}
+  @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<main id="app" aria-label="二十四节气自动动画">
+  <header class="chrome top">
+    <div class="brand"><span class="brand-seal">岁</span><span>岁时</span><small>THE TWENTY-FOUR<br>SOLAR TERMS</small></div>
+    <div class="chapter"><span id="seasonEn">SPRING</span><span class="rule"></span><b id="counter">01 / 24</b></div>
+  </header>
+  <div id="scenes" class="scenes"></div>
+  <footer class="chrome bottom">
+    <nav id="timeline" class="timeline" aria-label="选择节气"></nav>
+    <div class="controls">
+      <span class="hint">SPACE 切换 · P 暂停</span>
+      <button id="pause" class="control" aria-label="暂停自动播放" title="暂停 / 播放（P）">
+        <svg id="pauseIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2h3v12H3zm7 0h3v12h-3z"/></svg>
+      </button>
+      <button id="next" class="control next" aria-label="下一个节气" title="下一个节气（空格）"><span>下一节气</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7h8.2L8.4 4.2 9.6 3 14 8l-4.4 5-1.2-1.2 2.8-2.8H3z"/></svg></button>
+    </div>
+    <div class="progress"><i id="progress"></i></div>
+  </footer>
+  <div id="announce" class="sr-only" aria-live="polite"></div>
+</main>
+<script>
+(() => {
+  'use strict';
+  const DURATION = 5000;
+  const seasons = [
+    {name:'春',en:'SPRING',paper:'#eeeee2',ink:'#26382d',wash:'#dce4d2',accent:'#bd5943'},
+    {name:'夏',en:'SUMMER',paper:'#edf0df',ink:'#213c30',wash:'#d2e1c3',accent:'#d5683e'},
+    {name:'秋',en:'AUTUMN',paper:'#f0eadc',ink:'#403b2d',wash:'#e6d8b9',accent:'#b86c32'},
+    {name:'冬',en:'WINTER',paper:'#e9edeb',ink:'#293b40',wash:'#d3dfe0',accent:'#a94f43'}
+  ];
+  const terms = [
+    ['立春','Beginning of Spring','2月3日—5日','东风解冻，万物始生','spring','#bd5943'],
+    ['雨水','Rain Water','2月18日—20日','好雨知时，润物无声','rain','#568b8b'],
+    ['惊蛰','Awakening of Insects','3月5日—7日','一声春雷，百虫初醒','insects','#a86945'],
+    ['春分','Spring Equinox','3月20日—22日','昼夜均分，燕归花明','equinox','#cb7456'],
+    ['清明','Pure Brightness','4月4日—6日','气清景明，柳色新晴','qingming','#64836d'],
+    ['谷雨','Grain Rain','4月19日—21日','雨生百谷，茶煎春色','grainrain','#6f8b58'],
+    ['立夏','Beginning of Summer','5月5日—7日','风暖昼长，绿野新光','summer','#4f8b68'],
+    ['小满','Grain Buds','5月20日—22日','麦粒渐满，小得盈盈','buds','#a99446'],
+    ['芒种','Grain in Ear','6月5日—7日','有芒之谷，可种可期','mangzhong','#bd9843'],
+    ['夏至','Summer Solstice','6月20日—22日','日长之至，荷风送香','solstice','#d36b3f'],
+    ['小暑','Minor Heat','7月6日—8日','温风忽至，竹影蝉鸣','minorheat','#bd7048'],
+    ['大暑','Major Heat','7月22日—24日','赤日流火，心静生凉','majorheat','#cd593b'],
+    ['立秋','Beginning of Autumn','8月7日—9日','凉风有信，一叶知秋','autumn','#b47b3f'],
+    ['处暑','End of Heat','8月22日—24日','暑云渐散，鹰击长空','endheat','#8f8660'],
+    ['白露','White Dew','9月7日—9日','露从今夜，草木生霜','dew','#7c9690'],
+    ['秋分','Autumn Equinox','9月22日—24日','金气平分，桂香月满','autumnequinox','#b88a42'],
+    ['寒露','Cold Dew','10月7日—9日','菊有黄华，露寒将凝','colddew','#a1783f'],
+    ['霜降','Frost Descent','10月23日—24日','霜叶红透，柿灯映秋','frost','#b75e3d'],
+    ['立冬','Beginning of Winter','11月7日—8日','水始成冰，天地归藏','winter','#657c7b'],
+    ['小雪','Minor Snow','11月22日—23日','松枝初白，雪意轻盈','minorsnow','#789397'],
+    ['大雪','Major Snow','12月6日—8日','千山覆雪，万籁藏声','majorsnow','#607e88'],
+    ['冬至','Winter Solstice','12月21日—23日','一阳来复，长夜将明','wintersolstice','#8f5d55'],
+    ['小寒','Minor Cold','1月5日—7日','鹊始营巢，梅蕊含香','minorcold','#976253'],
+    ['大寒','Major Cold','1月20日—21日','坚冰深处，春信已生','majorcold','#526e79']
+  ].map((d,i)=>({name:d[0],en:d[1],date:d[2],poem:d[3],art:d[4],accent:d[5],season:Math.floor(i/6),index:i}));
+
+  const svgOpen = (n, content, opts={}) => {
+    const {sunX=560,sunY=180,sunR=68,horizon=445}=opts;
+    return `<svg viewBox="0 0 800 650" role="img" aria-label="节气意象插画">
+      <defs><clipPath id="arch${n}"><path d="M105 590V284C105 132 231 34 400 34s295 98 295 250v306z"/></clipPath></defs>
+      <path d="M90 590V282C90 121 225 18 400 18s310 103 310 264v308" class="fine" opacity=".38"/>
+      <g clip-path="url(#arch${n})">
+        <path d="M105 590V284C105 132 231 34 400 34s295 98 295 250v306z" class="wash"/>
+        <circle cx="${sunX}" cy="${sunY}" r="${sunR}" class="accent pulse" opacity=".88"/>
+        <circle cx="${sunX}" cy="${sunY}" r="${sunR+17}" class="accent-line spin" stroke-dasharray="2 12" opacity=".5"/>
+        <path d="M65 ${horizon}Q220 ${horizon-65} 365 ${horizon}T740 ${horizon-8}V630H65Z" class="paper" opacity=".72"/>
+        ${content}
+      </g>
+      <path d="M105 590H695" class="line"/><path d="M82 606H716" class="fine" opacity=".45"/>
+      <g class="fine" opacity=".55"><path d="M71 574v16m-8-8h16M729 574v16m-8-8h16"/><circle cx="400" cy="15" r="3" class="accent"/></g>
+    </svg>`;
+  };
+  const birds=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})" class="fine drift"><path d="M0 8Q12-4 24 8Q36-4 48 8M68 25q9-8 18 0q9-8 18 0"/></g>`;
+  const rain=(ys=[0,70,140])=>ys.map((y,i)=>`<g class="accent-line rain" style="animation-delay:${i*.35}s" opacity=".55"><path d="M250 ${150+y}l-12 25m72-52-12 25m72-4-12 25m72-65-12 25m72 12-12 25m72-50-12 25"/></g>`).join('');
+  const snow=(count=16)=>Array.from({length:count},(_,i)=>`<circle cx="${180+(i*73)%470}" cy="${120+(i*47)%280}" r="${i%3===0?4:2.5}" class="paper snow" style="animation-delay:${(i%6)*-.6}s"/>`).join('');
+  const leaf=(x,y,s=1,r=0,c='accent')=>`<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})" class="float"><path d="M0 0Q-28-30 0-65Q28-30 0 0Z" class="${c}"/><path d="M0-4V-54" class="fine"/></g>`;
+  const mountain=(y=390)=>`<path d="M75 ${y+90}L205 ${y-60}l72 68 92-116 90 100 68-56 164 164" class="line"/><path d="M75 ${y+90}L205 ${y-60}l72 68 92-116 90 100 68-56 164 164V620H75Z" class="ink" opacity=".08"/>`;
+  const wheat=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})" class="sway"><path d="M0 110Q5 30 0-80" class="line"/><path d="M0-65q-28-8-22-30Q-4-91 0-65Zm0 23q28-8 22-30Q4-68 0-42Zm0 24q-28-8-22-30Q-4-43 0-18Zm0 23q28-8 22-30Q4-19 0 5Z" class="accent"/></g>`;
+  const pine=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 120V-90" class="line"/><path d="M0-85-70 0h40l-62 70h65l-48 50H75L27 70h62L30 0h40Z" class="fill"/><path d="M-47-12 0-85 35-27M-55 58-22 1h30M-35 103-8 60h38" stroke="var(--paper)" stroke-width="7" fill="none" stroke-linecap="round"/></g>`;
+  const lotus=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})" class="float"><path d="M0 20Q-75 5-72-45Q-25-40 0 20Q75 5 72-45Q25-40 0 20Z" class="accent"/><path d="M0 18Q-45-18 0-78Q45-18 0 18Z" class="paper"/><path d="M0 20Q-18-30 0-62Q18-30 0 20Z" class="accent"/><path d="M0 20v95" class="line"/></g>`;
+
+  function illustration(t){
+    const n=t.index+1;let c='';
+    switch(t.art){
+      case 'spring': c=`<path d="M145 520Q280 435 360 315T600 165" class="line draw"/><path d="M335 350q-65-10-90-70 65-5 100 45M430 280q65-45 130-20-40 70-115 55" class="fill" opacity=".85"/>
+        ${leaf(300,490,.75,-35,'accent')}${leaf(510,360,.55,42,'fill')}<g class="accent"><circle cx="370" cy="300" r="12"/><circle cx="405" cy="272" r="9"/><circle cx="475" cy="225" r="11"/><circle cx="525" cy="202" r="7"/></g>${birds(195,190,.9)}<path d="M145 550q210-45 510 5" class="accent-line"/>`;break;
+      case 'rain': c=`${rain([0,60,120,180])}<path d="M250 535Q310 410 400 505Q490 390 555 535Z" class="fill"/><path d="M400 505v65q0 30 28 18" class="line"/><path d="M205 555q95-25 190 0t190 0M245 580q75-20 150 0t150 0" class="accent-line ripple"/>${leaf(205,470,.65,-45,'fill')}`;break;
+      case 'insects': c=`<path d="M520 100 465 205l55-12-85 135 25-88-55 12z" class="accent pulse"/><path d="M180 525q80-150 195-65t240-20" class="line"/><path d="M350 470q-30-85 25-130 65 65 15 125" class="fill sway"/>
+        <g transform="translate(330 430)" class="float"><ellipse rx="36" ry="24" class="accent"/><path d="M-12-18v36M12-18v36M-32-5-58-20m26 38-30 12m94-35 28-15m-26 38 30 12" class="line"/><circle cx="-14" cy="-4" r="3" class="paper"/><circle cx="14" cy="-4" r="3" class="paper"/></g><path d="M185 540q150-25 425 0" class="accent-line"/>`;break;
+      case 'equinox': c=`<path d="M400 110v390" class="fine" stroke-dasharray="4 10"/><path d="M400 150a150 150 0 0 0 0 300Z" class="fill" opacity=".85"/><path d="M400 150a150 150 0 0 1 0 300Z" class="paper"/><path d="M250 300h300M400 150v300" class="fine" opacity=".45"/><circle cx="400" cy="300" r="105" class="accent-line spin" stroke-dasharray="2 14"/>${birds(170,220,.75)}${birds(500,370,.65)}<path d="M180 535h440" class="line"/><circle cx="400" cy="535" r="8" class="accent"/>`;break;
+      case 'qingming': c=`${mountain(370)}<path d="M130 390q130-55 260 0t280-10M105 425q160-50 300 0t290-5" stroke="var(--paper)" stroke-width="22" fill="none" opacity=".65" class="drift"/><path d="M175 200q25 170 5 350M175 245q-70 80-55 175m65-130q70 65 55 145" class="line sway"/><path d="M125 330q30 10 45-20m-48 65q30 10 48-20m50-25q30 5 42-20m-42 65q30 5 42-20" class="accent-line"/><path d="M500 190 555 235 500 280 445 235Z" class="paper float"/><path d="M500 280q-40 100 40 145" class="fine"/><path d="M540 425l-35 20m35-20 25 30" class="accent-line"/>`;break;
+      case 'grainrain': c=`${rain([0,100,200])}<path d="M160 535q220-85 470 0" class="line"/>${wheat(265,435,.85)}${wheat(335,455,1)}${wheat(410,440,.9)}<g transform="translate(500 390)" class="sway"><path d="M0 130V-30" class="line"/><path d="M0 45q-100-5-95-90Q-15-50 0 45Zm0 20q100-5 95-90Q15-30 0 65ZM0-10q-65-40-25-100Q25-65 0-10Z" class="fill"/><path d="M0 45-70-30M0 65l70-75M0-10l-15-70" class="fine"/></g>`;break;
+      case 'summer': c=`<path d="M160 535q240-65 480 0M200 565q190-45 390 0" class="accent-line ripple"/><path d="M330 520Q230 450 260 390Q385 390 430 510Q350 555 330 520Z" class="fill float"/><path d="M330 510q-35-65-60-105" class="fine"/>${lotus(500,390,.9)}<g transform="translate(275 430)" class="float"><ellipse rx="26" ry="17" class="accent"/><circle cx="-12" cy="-14" r="9" class="accent"/><circle cx="12" cy="-14" r="9" class="accent"/><circle cx="-12" cy="-15" r="2.5" class="ink"/><circle cx="12" cy="-15" r="2.5" class="ink"/></g>${birds(180,180,.6)}`;break;
+      case 'buds': c=`<path d="M130 500q140-90 270 0t270-10v120H130Z" class="fill" opacity=".12"/>${wheat(240,425,1.15)}${wheat(330,440,1.25)}${wheat(425,420,1.1)}${wheat(515,445,1.3)}<path d="M155 545q230-45 490 0M185 575q190-30 430 0" class="fine"/><path d="M180 250q100 50 200 0t200 0" class="accent-line drift"/>`;break;
+      case 'mangzhong': c=`<path d="M110 475h580v130H110Z" class="fill" opacity=".09"/><path d="M110 505h580M110 545h580M180 475v130m90-130v130m90-130v130m90-130v130m90-130v130" class="fine" opacity=".45"/>${wheat(235,360,1.15)}${wheat(320,350,1.05)}${wheat(405,365,1.2)}<g class="accent-line sway"><path d="M500 555q-10-65 0-110m0 55-30-25m30 5 30-25M570 555q-10-65 0-110m0 55-30-25m30 5 30-25"/></g>${birds(170,185,.7)}`;break;
+      case 'solstice': c=`<circle cx="400" cy="285" r="142" class="accent-line" opacity=".4"/><path d="M400 110v350M225 285h350M275 160l250 250m0-250L275 410" class="fine" opacity=".22"/><path d="M400 320 510 540H290Z" class="fill" opacity=".16"/>${lotus(485,420,.85)}<path d="M150 540q250-45 500 0M190 570q210-35 420 0" class="accent-line ripple"/><path d="M220 450q-55-90 15-150 85 75 20 150" class="fill sway"/>`;break;
+      case 'minorheat': c=`<path d="M240 570V190m105 380V145" class="line"/><path d="M220 300h40m-40 100h40m65-135h40m-40 115h40" class="accent-line"/><path d="M240 270q-85-65-100-5 65 45 100 5Zm105 45q95-75 115-10-75 50-115 10ZM240 420q-90-55-95 10 70 35 95-10Z" class="fill sway"/><g transform="translate(455 390)" class="float"><ellipse rx="18" ry="45" class="fill"/><ellipse cx="-24" cy="-5" rx="20" ry="48" class="paper wing"/><ellipse cx="24" cy="-5" rx="20" ry="48" class="paper wing"/><path d="M-8-38-18-60m26 22 18-22" class="line"/></g><path d="M160 540q200-45 460 0" class="accent-line drift"/>`;break;
+      case 'majorheat': c=`<g class="accent-line spin" opacity=".65"><path d="M400 90v55m0 310v55M190 285h55m310 0h55M250 135l40 40m220 220 40 40m0-260-40 40M290 395l-40 40"/></g><circle cx="400" cy="285" r="110" class="accent pulse"/><path d="M170 505q70-45 140 0t140 0 140 0M195 540q60-35 120 0t120 0 120 0" class="accent-line drift"/><path d="M260 545Q330 390 540 390 480 545 260 545Z" class="paper float"/><path d="M275 530 520 405M345 490l-5-50m65 15-3-45m-65 110 55 12m20-50 55 10" class="line"/>`;break;
+      case 'autumn': c=`<path d="M170 520Q330 430 390 300T620 175" class="line draw"/><path d="M355 355q-75-20-100-80 80 0 110 45M465 265q65-45 120-15-45 65-110 50" class="fill"/>${leaf(395,455,1.3,38,'accent')}${leaf(510,365,.8,75,'accent')}<path d="M175 550q230-50 470 0" class="fine"/>${birds(175,175,.65)}`;break;
+      case 'endheat': c=`<path d="M150 230q55-65 110 0 55-55 105 5M430 300q45-50 90 0 55-45 100 5" class="paper drift"/><path d="M180 560q30-120 15-235m70 235q10-145-5-250m320 250q-15-130 5-220" class="line sway"/><path d="M190 360q-65 20-50 70 50-5 55-55m65-20q60 20 45 65-45-5-50-50m330 5q-60 10-50 60 50 0 55-45" class="fill"/><g transform="translate(450 195)" class="float"><path d="M0 0q45-55 90-10-45 5-65 35Q10 45-35 15-5 5 0 0Z" class="fill"/><path d="M20 20q35 20 60 55" class="line"/></g><path d="M150 545q230-35 500 0" class="accent-line"/>`;break;
+      case 'dew': c=`<path d="M250 570V245m100 325V190m110 380V270" class="line sway"/><path d="M250 305q-100-15-100 65 75 15 105-40m95-70q90-25 105 45-65 35-105-10m110 65q-85-5-85 65 65 15 90-35" class="fill"/><g class="paper pulse"><circle cx="250" cy="380" r="13"/><circle cx="350" cy="320" r="10"/><circle cx="460" cy="405" r="14"/><circle cx="290" cy="460" r="7"/></g><path d="M160 545q230-35 470 0" class="accent-line"/><circle cx="250" cy="380" r="25" class="fine ripple"/>`;break;
+      case 'autumnequinox': c=`<path d="M400 120a175 175 0 0 0 0 350Z" class="accent"/><path d="M400 120a175 175 0 0 1 0 350Z" class="paper"/><circle cx="400" cy="295" r="125" class="fine spin" stroke-dasharray="3 13"/><path d="M170 535h460" class="line"/><path d="M275 535V420m250 115V420" class="line"/>${leaf(275,450,.8,-25,'accent')}${leaf(525,460,.8,25,'fill')}<path d="M235 555h330" class="accent-line"/>${birds(180,170,.55)}`;break;
+      case 'colddew': c=`<path d="M400 565V350" class="line"/><g transform="translate(400 335)" class="float">${Array.from({length:12},(_,i)=>`<ellipse rx="20" ry="85" class="accent" transform="rotate(${i*30}) translate(0 -65)" opacity=".9"/>`).join('')}<circle r="48" class="fill"/><circle r="24" class="paper"/></g><path d="M400 450q-110-45-125 35 85 40 130-10m-5 25q105-50 120 30-85 40-120-5" class="fill"/><g class="paper pulse"><circle cx="260" cy="250" r="9"/><circle cx="535" cy="430" r="11"/><circle cx="300" cy="500" r="7"/></g><path d="M170 555h460" class="accent-line"/>`;break;
+      case 'frost': c=`<path d="M185 520Q340 415 410 250T610 170" class="line"/><path d="M360 340q-75-45-85-105 80 15 110 65m100-65q65-35 115-5-45 60-105 45" class="fill"/><g class="accent float"><circle cx="355" cy="395" r="42"/><circle cx="490" cy="310" r="36"/></g><path d="M355 350v-20m135-55v-20" class="line"/><path d="M205 550h420M235 530l35 35m30-55 35 55m35-70 35 70m35-90 35 85m35-105 35 95" class="fine" opacity=".55"/><path d="M210 515l25 10m10-35 25 10m15-40 25 10m20-45 25 10m20-50 25 10m20-50 25 10m20-55 25 10" stroke="var(--paper)" stroke-width="5"/>`;break;
+      case 'winter': c=`<path d="M160 510q240-70 480 0v95H160Z" class="paper"/><path d="M160 520q240-70 480 0M190 555q190-45 390 0" class="line"/><path d="M345 530V290m0 85-85-90m85 30 90-105m-90 60-45-85" class="line draw"/><path d="M260 285q-30-35-65-25m240 55q45-30 70-10M300 185q-25-35-55-30" class="fine"/><path d="M190 565l35-25 35 25 35-25 35 25m150 0 35-25 35 25 35-25 35 25" class="accent-line"/>`;break;
+      case 'minorsnow': c=`${snow(20)}${pine(380,380,1.25)}<path d="M150 560q250-70 500 0" class="line"/><path d="M180 585q210-45 440 0" class="fine"/>${birds(180,190,.45)}`;break;
+      case 'majorsnow': c=`${snow(30)}${mountain(390)}<path d="M180 450 205 330l35 35 37 50 45-55 47-70 45 50 45 50 43-45 25-45 60 100" stroke="var(--paper)" stroke-width="13" fill="none" stroke-linejoin="round"/>${pine(205,465,.55)}${pine(590,470,.65)}<path d="M110 560q290-75 580 0v65H110Z" class="paper"/><path d="M140 570q250-50 510 0" class="fine"/>`;break;
+      case 'wintersolstice': c=`<path d="M190 300a210 210 0 0 1 420 0" class="fine"/><path d="M400 100v400" class="fine" stroke-dasharray="4 12"/><circle cx="400" cy="295" r="135" class="fill" opacity=".85"/><path d="M400 160a135 135 0 0 1 0 270Z" class="paper"/><path d="M245 525h310l-25 65H270Z" class="paper"/><path d="M245 525h310M270 590h260" class="line"/><g class="accent"><path d="M300 520q-30-45 15-55 45 20 20 55Z"/><path d="M380 520q-30-45 15-55 45 20 20 55Z"/><path d="M460 520q-30-45 15-55 45 20 20 55Z"/></g><path d="M330 445q-20-30 0-60m70 60q-20-30 0-60m70 60q-20-30 0-60" class="fine drift"/>`;break;
+      case 'minorcold': c=`${snow(12)}<path d="M175 535Q330 440 385 300T610 175" class="line draw"/><path d="M340 365q-75-20-100-75 75 0 105 45m115-70q70-35 115-5-45 55-105 40" class="fill"/><g class="accent float"><circle cx="375" cy="330" r="13"/><circle cx="430" cy="270" r="11"/><circle cx="495" cy="225" r="14"/><circle cx="540" cy="200" r="9"/></g><g transform="translate(280 245)" class="float"><path d="M0 0q45-50 85-5-45 0-60 30Q5 45-30 15-5 5 0 0Z" class="fill"/><circle cx="62" cy="-4" r="3" class="paper"/></g><path d="M175 555h450" class="accent-line"/>`;break;
+      case 'majorcold': c=`${snow(22)}<path d="M150 520 250 340l75 95 80-145 95 130 65-85 90 185Z" class="fill" opacity=".8"/><path d="M150 520 250 340l30 38 45 57 80-145 40 55 55 75 65-85 35 72 55 113" stroke="var(--paper)" stroke-width="8" fill="none"/><path d="M135 540h535v65H135Z" class="paper"/><path d="M160 555l45-20 45 20 45-20 45 20 45-20 45 20 45-20 45 20 45-20 45 20" class="accent-line"/><path d="M190 535q40-100 25-175m0 70-45-45m45 10 40-50" class="line"/><g class="accent"><circle cx="170" cy="385" r="9"/><circle cx="215" cy="360" r="11"/><circle cx="255" cy="345" r="8"/></g>`;break;
+    }
+    return svgOpen(n,c,{sunX:t.art==='wintersolstice'?400:560,sunY:t.art==='majorheat'?285:180,sunR:t.art==='majorheat'?0:62,horizon:t.art.includes('snow')?500:445});
+  }
+
+  const sceneRoot=document.getElementById('scenes');
+  const timeline=document.getElementById('timeline');
+  terms.forEach(t=>{
+    const s=seasons[t.season];
+    const section=document.createElement('section');
+    section.className='scene';section.dataset.index=t.index;section.setAttribute('aria-hidden','true');
+    section.style.cssText=`--paper:${s.paper};--ink:${s.ink};--wash:${s.wash};--accent:${t.accent};--line:${s.ink}38`;
+    section.innerHTML=`<div class="scene-inner">
+      <div class="copy">
+        <div class="eyebrow">${s.name}之第${t.index%6+1}章 · ${s.en}</div>
+        <div class="term-row"><h1 class="term">${t.name}</h1><span class="term-index">${String(t.index+1).padStart(2,'0')}</span></div>
+        <p class="english">${t.en}</p><p class="poem">${t.poem}</p><div class="date"><i></i><span>${t.date}</span><span>农历节气</span></div>
+      </div>
+      <div class="art"><span class="big-index">${String(t.index+1).padStart(2,'0')}</span>${illustration(t)}</div>
+    </div>`;
+    sceneRoot.appendChild(section);
+  });
+  seasons.forEach((s,si)=>{
+    const group=document.createElement('div');group.className='season-group';
+    group.innerHTML=`<span class="season-label">${s.name} / ${s.en}</span><div class="ticks"></div>`;
+    terms.slice(si*6,si*6+6).forEach(t=>{
+      const b=document.createElement('button');b.className='tick';b.dataset.name=t.name;b.dataset.index=t.index;b.setAttribute('aria-label',`切换到${t.name}`);b.addEventListener('click',()=>go(t.index));group.querySelector('.ticks').appendChild(b);
+    });timeline.appendChild(group);
+  });
+
+  const scenes=[...document.querySelectorAll('.scene')],ticks=[...document.querySelectorAll('.tick')];
+  const app=document.getElementById('app'),counter=document.getElementById('counter'),seasonEn=document.getElementById('seasonEn'),progress=document.getElementById('progress'),announce=document.getElementById('announce');
+  const pauseButton=document.getElementById('pause'),pauseIcon=document.getElementById('pauseIcon');
+  let current=-1,playing=true,startedAt=performance.now(),elapsed=0,resumeAfterHidden=false;
+  function applyTheme(t){const s=seasons[t.season];app.style.setProperty('--paper',s.paper);app.style.setProperty('--ink',s.ink);app.style.setProperty('--wash',s.wash);app.style.setProperty('--accent',t.accent);app.style.setProperty('--line',s.ink+'38');document.querySelector('meta[name="theme-color"]').content=s.paper;}
+  function go(index){
+    index=(index+terms.length)%terms.length;if(index===current)return;
+    const previous=current;current=index;const t=terms[current];
+    scenes.forEach((scene,i)=>{scene.classList.toggle('active',i===current);scene.classList.toggle('leaving',i===previous);scene.setAttribute('aria-hidden',i===current?'false':'true');if(i!==current&&i!==previous)scene.classList.remove('leaving');});
+    ticks.forEach((tick,i)=>{tick.classList.toggle('active',i===current);tick.setAttribute('aria-current',i===current?'true':'false');});
+    applyTheme(t);counter.textContent=`${String(current+1).padStart(2,'0')} / 24`;seasonEn.textContent=seasons[t.season].en;announce.textContent=`${t.name}，${t.poem}`;
+    elapsed=0;startedAt=performance.now();progress.style.transform='scaleX(0)';
+  }
+  function setPlaying(value){playing=value;startedAt=performance.now()-elapsed;pauseButton.setAttribute('aria-label',playing?'暂停自动播放':'继续自动播放');pauseIcon.innerHTML=playing?'<path d="M3 2h3v12H3zm7 0h3v12h-3z"/>':'<path d="M4 2l10 6-10 6z"/>';}
+  function next(){go(current+1)}
+  document.getElementById('next').addEventListener('click',next);
+  pauseButton.addEventListener('click',()=>setPlaying(!playing));
+  document.addEventListener('keydown',e=>{
+    if(e.code==='Space'){e.preventDefault();next();}
+    else if(e.code==='ArrowRight'){e.preventDefault();next();}
+    else if(e.code==='ArrowLeft'){e.preventDefault();go(current-1);}
+    else if(e.code==='KeyP'){e.preventDefault();setPlaying(!playing);}
+  });
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){resumeAfterHidden=playing;if(playing)setPlaying(false);}
+    else if(resumeAfterHidden){resumeAfterHidden=false;setPlaying(true);}
+  });
+  function frame(now){
+    if(playing){elapsed=now-startedAt;if(elapsed>=DURATION){next();}else{progress.style.transform=`scaleX(${Math.min(1,elapsed/DURATION)})`;}}
+    requestAnimationFrame(frame);
+  }
+  go(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

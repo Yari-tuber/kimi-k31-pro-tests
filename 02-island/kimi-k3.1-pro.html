@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#dceee7" />
+  <title>小岛晨昏 · A little place to breathe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap');
+    :root{--ink:#314c48;--muted:#68837c;--paper:rgba(250,252,246,.76);--line:rgba(65,91,80,.15);--accent:#d78e70;--shadow:0 14px 44px rgba(45,73,66,.11)}
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden}body{font-family:"DM Sans","Noto Serif SC",serif;color:var(--ink);background:#cfe6e2;-webkit-font-smoothing:antialiased}button,input{font:inherit}button{color:inherit}
+    #scene{position:fixed;inset:0;touch-action:none;cursor:grab}#scene:active{cursor:grabbing}#scene canvas{display:block;width:100%;height:100%;outline:none}
+    .vignette{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 52% 45%,transparent 42%,rgba(30,61,59,.09) 130%);z-index:1}
+    .grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.032;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E")}
+    .ui{position:fixed;inset:0;z-index:3;pointer-events:none}.ui button,.ui input{pointer-events:auto}
+    header{position:absolute;top:38px;left:44px;max-width:360px}.eyebrow{display:flex;align-items:center;gap:10px;font-size:10px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;opacity:.72}.eyebrow:before{content:"";width:24px;height:1px;background:currentColor}
+    h1{font-family:"Noto Serif SC",serif;font-weight:500;font-size:clamp(34px,4.2vw,58px);letter-spacing:.14em;line-height:1.2;margin:13px 0 10px;text-shadow:0 2px 20px rgba(241,249,240,.25)}.subtitle{font-family:"Noto Serif SC",serif;font-size:12px;letter-spacing:.18em;color:var(--muted);margin:0}.english{font-size:10px;letter-spacing:.2em;margin-top:14px;text-transform:uppercase;opacity:.5}
+    .top-actions{position:absolute;right:38px;top:36px;display:flex;align-items:center;gap:10px}.glass{background:var(--paper);border:1px solid rgba(255,255,255,.65);box-shadow:var(--shadow);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+    .round-btn{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.7);display:grid;place-items:center;cursor:pointer;transition:transform .25s,background .25s}.round-btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.9)}.round-btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+    .time-card{position:absolute;right:38px;top:94px;width:184px;padding:16px 17px;border-radius:18px}.time-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}#clock{font-size:27px;font-weight:400;letter-spacing:.04em;margin:4px 0 2px;font-variant-numeric:tabular-nums}#phase{font-family:"Noto Serif SC",serif;font-size:11px;letter-spacing:.12em;color:var(--muted)}
+    .sun-path{height:28px;position:relative;margin-top:8px;border-bottom:1px dashed rgba(76,105,93,.22);overflow:hidden}.sun-path:after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:#e4a361;left:var(--sun-x,50%);top:var(--sun-y,5px);box-shadow:0 0 12px #efbc77;transform:translate(-50%,-50%)}
+    .hint{position:absolute;left:44px;bottom:42px;display:flex;align-items:center;gap:12px;font-size:10px;letter-spacing:.1em;color:var(--muted)}.mouse{width:21px;height:30px;border:1px solid currentColor;border-radius:12px;position:relative;opacity:.7}.mouse:after{content:"";position:absolute;left:9px;top:5px;width:2px;height:6px;background:currentColor;border-radius:2px;animation:wheel 1.8s infinite}@keyframes wheel{0%{transform:translateY(0);opacity:0}30%{opacity:1}100%{transform:translateY(8px);opacity:0}}
+    .dock-wrap{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px}.dock{display:flex;align-items:center;padding:7px;border-radius:22px;gap:3px}.action{border:0;background:transparent;border-radius:16px;padding:10px 16px;display:flex;align-items:center;gap:9px;cursor:pointer;white-space:nowrap;transition:background .25s,color .25s,transform .25s;font-family:"Noto Serif SC",serif;font-size:12px;letter-spacing:.06em}.action:hover{background:rgba(255,255,255,.65);transform:translateY(-1px)}.action.active{background:#425f57;color:#fffdf5;box-shadow:0 5px 15px rgba(49,76,72,.18)}.action svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.45;stroke-linecap:round;stroke-linejoin:round}.divider{height:24px;width:1px;background:var(--line);margin:0 4px}.mini-note{font-size:9px;letter-spacing:.13em;color:var(--muted);opacity:.8}
+    .timeline{display:flex;align-items:center;gap:9px;padding:7px 12px;border-radius:14px;font-size:9px;letter-spacing:.1em}.timeline input{appearance:none;-webkit-appearance:none;width:116px;height:3px;border-radius:3px;background:rgba(61,91,82,.18);cursor:pointer;outline:none}.timeline input::-webkit-slider-thumb{appearance:none;width:11px;height:11px;background:#fafaf2;border:2px solid #638077;border-radius:50%;box-shadow:0 1px 4px #5674}.timeline input::-moz-range-thumb{width:8px;height:8px;background:#fafaf2;border:2px solid #638077;border-radius:50%}
+    #toast{position:absolute;left:50%;top:24%;transform:translate(-50%,10px);padding:10px 18px;border-radius:30px;font-family:"Noto Serif SC",serif;font-size:12px;letter-spacing:.12em;opacity:0;transition:opacity .35s,transform .35s}#toast.show{opacity:1;transform:translate(-50%,0)}
+    #loader{position:fixed;inset:0;z-index:20;background:#e7f0e8;display:grid;place-items:center;transition:opacity .8s,visibility .8s}#loader.done{opacity:0;visibility:hidden}.loader-inner{text-align:center}.loader-mark{width:54px;height:54px;margin:0 auto 20px;border:1px solid #8ba89b;border-radius:50%;position:relative;animation:breathe 2s ease-in-out infinite}.loader-mark:before{content:"";position:absolute;left:10px;right:10px;bottom:15px;height:11px;background:#8ba89b;border-radius:50% 50% 45% 45%;clip-path:polygon(0 100%,15% 35%,35% 65%,53% 0,70% 55%,100% 100%)}.loader-inner p{font-family:"Noto Serif SC",serif;font-size:12px;letter-spacing:.25em;color:#617c70}@keyframes breathe{50%{transform:translateY(-5px);opacity:.55}}
+    #error{display:none;position:fixed;inset:0;z-index:30;background:#edf3eb;place-items:center;text-align:center;padding:30px;font-family:"Noto Serif SC",serif;line-height:2}#error.show{display:grid}
+    body.night{--ink:#e5eee5;--muted:#b2c5bd;--paper:rgba(34,56,60,.7);--line:rgba(220,238,226,.15);--shadow:0 14px 44px rgba(4,15,24,.18)}body.night .action:hover{background:rgba(255,255,255,.1)}body.night .action.active{background:#d6dfca;color:#2c4946}body.night .glass{border-color:rgba(255,255,255,.12)}
+    @media(max-width:760px){header{top:24px;left:22px}h1{font-size:34px;margin-top:10px}.english{display:none}.subtitle{font-size:10px}.top-actions{top:22px;right:20px}.time-card{right:20px;top:76px;width:142px;padding:12px 14px}#clock{font-size:22px}.hint{display:none}.dock-wrap{bottom:18px;width:calc(100% - 24px)}.dock{max-width:100%;border-radius:19px}.action{padding:10px 11px;font-size:11px;gap:6px}.action svg{width:16px}.mini-note{display:none}.timeline{padding:6px 10px}#toast{top:19%;font-size:11px;white-space:nowrap}}
+    @media(max-width:390px){.action .label{display:none}.action{padding:11px 14px}.time-card{width:126px}.eyebrow{font-size:8px}h1{font-size:29px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition-duration:.01ms!important}}
+  </style>
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head>
+<body>
+  <main id="scene" aria-label="可交互的三维小岛场景"></main>
+  <div class="vignette"></div><div class="grain"></div>
+  <div class="ui">
+    <header><div class="eyebrow">一座岛 · 一段慢时光</div><h1>小岛晨昏</h1><p class="subtitle">在潮声里，等一场日落。</p><div class="english">A little place to breathe · 23° N / 118° E</div></header>
+    <div class="top-actions"><button class="round-btn glass" id="soundBtn" title="开启环境音" aria-label="开启环境音"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path class="sound-wave" d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/></svg></button><button class="round-btn glass" id="resetBtn" title="回到初始视角" aria-label="重置视角"><svg viewBox="0 0 24 24"><path d="M4 11a8 8 0 1 1 2 6M4 5v6h6"/></svg></button></div>
+    <aside class="time-card glass"><div class="time-label">Island local time</div><div id="clock">08:30</div><div id="phase">晨光 · 海风轻拂</div><div class="sun-path"></div></aside>
+    <div class="hint"><span class="mouse"></span><span>拖动环游小岛&nbsp;&nbsp;·&nbsp;&nbsp;滚轮靠近</span></div>
+    <div class="dock-wrap">
+      <div class="timeline glass"><span id="playIcon">Ⅱ</span><input id="timeSlider" type="range" min="0" max="1000" value="354" aria-label="一天中的时间"/><span>24H</span></div>
+      <nav class="dock glass" aria-label="场景交互">
+        <button class="action" id="doorBtn"><svg viewBox="0 0 24 24"><path d="M5 21V4l12-2v19M5 21h14M12 12h.01"/></svg><span class="label">推开木门</span></button>
+        <span class="divider"></span>
+        <button class="action active" id="smokeBtn"><svg viewBox="0 0 24 24"><path d="M8 21h10M9 18h8M12 15c-4-3 4-4 0-7s3-4 2-6"/></svg><span class="label">收起炊烟</span></button>
+        <span class="divider"></span>
+        <button class="action" id="cycleBtn"><svg viewBox="0 0 24 24"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/></svg><span class="label">昼夜流转</span></button>
+      </nav><div class="mini-note">也可以直接点击小屋的木门与烟囱</div>
+    </div>
+    <div id="toast" class="glass" role="status"></div>
+  </div>
+  <div id="loader"><div class="loader-inner"><div class="loader-mark"></div><p>正在等风来</p></div></div>
+  <div id="error"><div><h2>小岛暂时被雾遮住了</h2><p>请使用支持 WebGL 的现代浏览器，并检查网络后刷新。</p></div></div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const $ = s => document.querySelector(s);
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference:'high-performance' });
+    } catch(e) { $('#loader').classList.add('done'); $('#error').classList.add('show'); throw e; }
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    $('#scene').appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0xc7dfd7, .012);
+    const camera = new THREE.PerspectiveCamera(37, innerWidth/innerHeight, .1, 240);
+    const homeCamera = new THREE.Vector3(16, 8.5, 19);
+    camera.position.copy(homeCamera);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1.8, 0);
+    controls.enableDamping = true; controls.dampingFactor = .055;
+    controls.minDistance = 12; controls.maxDistance = 38;
+    controls.minPolarAngle = .38; controls.maxPolarAngle = Math.PI*.475;
+    controls.enablePan = false; controls.rotateSpeed = .55; controls.zoomSpeed = .75;
+
+    // Four-tone ramp keeps every surface softly cel-shaded.
+    const ramp = new THREE.DataTexture(new Uint8Array([55,55,55,255, 125,125,125,255, 200,200,200,255, 255,255,255,255]),4,1,THREE.RGBAFormat);
+    ramp.needsUpdate = true; ramp.minFilter = ramp.magFilter = THREE.NearestFilter;
+    const toon = (color, extra={}) => new THREE.MeshToonMaterial({color, gradientMap:ramp, ...extra});
+    const mat = {
+      grass:toon(0x8eaf79), grassLight:toon(0xb2c68c), sand:toon(0xe7cf9e), rock:toon(0x9a9b85),
+      cream:toon(0xf3dfb8), plaster:toon(0xf5e8cb), roof:toon(0xb96951), roofLight:toon(0xcf7c5c),
+      wood:toon(0x805b42), darkWood:toon(0x543f32), leaf:toon(0x6f9b78), leafLight:toon(0x9db680),
+      white:toon(0xfff4dc), stone:toon(0xb9b7a0), pink:toon(0xe9a99a), yellow:toon(0xf2cc74),
+      boat:toon(0xb7604c), metal:toon(0x586d68)
+    };
+    function mesh(geo, material, parent=scene, shadow=true){const m=new THREE.Mesh(geo,material);m.castShadow=shadow;m.receiveShadow=shadow;parent.add(m);return m}
+    function box(w,h,d,material,parent,x=0,y=0,z=0){const m=mesh(new THREE.BoxGeometry(w,h,d),material,parent);m.position.set(x,y,z);return m}
+    function sphere(r,material,parent,x=0,y=0,z=0,sx=1,sy=1,sz=1){const m=mesh(new THREE.SphereGeometry(r,16,12),material,parent);m.position.set(x,y,z);m.scale.set(sx,sy,sz);return m}
+    function cylinder(rt,rb,h,material,parent,x=0,y=0,z=0,n=24){const m=mesh(new THREE.CylinderGeometry(rt,rb,h,n),material,parent);m.position.set(x,y,z);return m}
+    function outline(object, color=0x50665b, opacity=.25){const lines=new THREE.LineSegments(new THREE.EdgesGeometry(object.geometry,28),new THREE.LineBasicMaterial({color,transparent:true,opacity}));lines.position.copy(object.position);lines.rotation.copy(object.rotation);lines.scale.copy(object.scale);object.parent.add(lines);return lines}
+
+    // Atmospheric sky dome, with a continuous dawn/day/dusk/night palette.
+    const skyUniforms={topColor:{value:new THREE.Color(0x79b7c7)},bottomColor:{value:new THREE.Color(0xf5dfb5)},offset:{value:15},exponent:{value:.65}};
+    const sky=mesh(new THREE.SphereGeometry(110,32,20),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:skyUniforms,vertexShader:`varying vec3 vWorld;void main(){vec4 w=modelMatrix*vec4(position,1.);vWorld=w.xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`uniform vec3 topColor;uniform vec3 bottomColor;uniform float offset;uniform float exponent;varying vec3 vWorld;void main(){float h=normalize(vWorld+vec3(0.,offset,0.)).y;gl_FragColor=vec4(mix(bottomColor,topColor,max(pow(max(h,0.),exponent),0.)),1.);}`}),scene,false);
+
+    const hemi=new THREE.HemisphereLight(0xdaf0e5,0x6f7662,2.15);scene.add(hemi);
+    const sunLight=new THREE.DirectionalLight(0xffe2b0,3.4);sunLight.castShadow=true;sunLight.shadow.mapSize.set(2048,2048);sunLight.shadow.camera.left=-14;sunLight.shadow.camera.right=14;sunLight.shadow.camera.top=14;sunLight.shadow.camera.bottom=-14;sunLight.shadow.camera.near=.5;sunLight.shadow.camera.far=65;sunLight.shadow.bias=-.0008;scene.add(sunLight);
+    const fillLight=new THREE.DirectionalLight(0x9cc5c3,.5);fillLight.position.set(-10,8,-8);scene.add(fillLight);
+
+    const sun=mesh(new THREE.SphereGeometry(2.1,24,16),new THREE.MeshBasicMaterial({color:0xffdc91,fog:false}),scene,false);
+    const moon=mesh(new THREE.SphereGeometry(1.45,24,16),new THREE.MeshBasicMaterial({color:0xe9efd7,fog:false}),scene,false);
+    const sunHalo=mesh(new THREE.SphereGeometry(3.2,20,14),new THREE.MeshBasicMaterial({color:0xffd79a,transparent:true,opacity:.1,depthWrite:false,fog:false}),scene,false);
+
+    const starGeo=new THREE.BufferGeometry();const starPos=[];let seed=42;const rnd=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646};
+    for(let i=0;i<450;i++){const a=rnd()*Math.PI*2,y=15+rnd()*65,r=85;starPos.push(Math.cos(a)*r,y,Math.sin(a)*r)}starGeo.setAttribute('position',new THREE.Float32BufferAttribute(starPos,3));
+    const stars=new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xf5f0d3,size:.18,transparent:true,opacity:0,depthWrite:false,fog:false}));scene.add(stars);
+
+    // Hand-shaped low-poly island and soft layered shoreline.
+    const island=new THREE.Group();scene.add(island);
+    const sandBase=cylinder(5.25,6.25,1.45,mat.sand,island,0,-.15,0,64);sandBase.scale.z=.83;
+    const rockBase=cylinder(5.65,6.55,.8,mat.rock,island,0,-1.05,0,48);rockBase.scale.z=.82;
+    const grassTop=cylinder(4.92,5.25,.52,mat.grass,island,0,.74,0,64);grassTop.scale.z=.82;
+    const pos=grassTop.geometry.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i),a=Math.atan2(z,x);const f=1+.035*Math.sin(a*5)+.02*Math.cos(a*9);pos.setX(i,x*f);pos.setZ(i,z*f)}pos.needsUpdate=true;grassTop.geometry.computeVertexNormals();
+    const foamRing=mesh(new THREE.RingGeometry(5.75,6.35,96),new THREE.MeshBasicMaterial({color:0xe8f4df,transparent:true,opacity:.48,side:THREE.DoubleSide,depthWrite:false}),scene,false);foamRing.rotation.x=-Math.PI/2;foamRing.scale.y=.83;foamRing.position.y=-.24;
+
+    // Ocean shader: broad illustrated waves, tiny glints and horizon haze.
+    const oceanUniforms={uTime:{value:0},uDay:{value:1},uSun:{value:new THREE.Vector3(1,1,0)},uDeep:{value:new THREE.Color(0x4f9d9c)},uShallow:{value:new THREE.Color(0x91c5b6)},uGlint:{value:new THREE.Color(0xfff0c9)},uHorizon:{value:new THREE.Color(0xe6edcf)}};
+    const oceanMat=new THREE.ShaderMaterial({uniforms:oceanUniforms,side:THREE.DoubleSide,vertexShader:`uniform float uTime;varying vec3 vPos;varying float vWave;void main(){vec3 p=position;float w=sin(p.x*.55+uTime*.65)*.09+cos(p.y*.43-uTime*.5)*.075+sin((p.x+p.y)*.22+uTime*.35)*.1;p.z+=w;vWave=w;vec4 world=modelMatrix*vec4(p,1.);vPos=world.xyz;gl_Position=projectionMatrix*viewMatrix*world;}`,fragmentShader:`uniform float uTime;uniform float uDay;uniform vec3 uDeep;uniform vec3 uShallow;uniform vec3 uGlint;uniform vec3 uHorizon;varying vec3 vPos;varying float vWave;void main(){float bands=smoothstep(-.12,.19,vWave);vec3 col=mix(uDeep,uShallow,bands*.68+.16);float ripple=sin(vPos.x*2.1+sin(vPos.z*.8)+uTime)*sin(vPos.z*2.4-uTime*.7);float fine=pow(max(0.,ripple),18.);float sparkle=pow(max(0.,sin(vPos.x*5.3+vPos.z*3.7+uTime*1.4)),42.)*pow(max(0.,sin(vPos.z*4.1-uTime)),10.);col+=uGlint*(fine*.12+sparkle*.32)*(.35+uDay*.65);float dist=length(vPos.xz);col=mix(col,uShallow,smoothstep(28.,85.,dist)*.32);col=mix(col,uHorizon,smoothstep(60.,175.,dist));gl_FragColor=vec4(col,1.);}`});
+    const ocean=mesh(new THREE.PlaneGeometry(400,400,180,180),oceanMat,scene,false);ocean.rotation.x=-Math.PI/2;ocean.position.y=-.46;
+
+    // Cottage: warm plaster, a chunky terracotta gable, timber trims and glowing windows.
+    const house=new THREE.Group();house.position.set(-.35,1.03,-.15);house.rotation.y=-.12;island.add(house);
+    const walls=box(4.25,2.65,3.5,mat.plaster,house,0,1.35,0);outline(walls,0x7b7562,.2);
+    box(4.5,.22,3.72,mat.darkWood,house,0,.1,0);
+    const roofShape=new THREE.Shape();roofShape.moveTo(-2.55,0);roofShape.lineTo(0,1.72);roofShape.lineTo(2.55,0);roofShape.closePath();
+    const roofGeo=new THREE.ExtrudeGeometry(roofShape,{depth:4.15,bevelEnabled:false});roofGeo.translate(0,0,-2.075);
+    const roof=mesh(roofGeo,mat.roof,house);roof.position.y=2.68;outline(roof,0x6d493d,.36);
+    // Roof ribs are intentionally sparse, like ink strokes in an illustration.
+    for(let z=-1.7;z<=1.7;z+=.68){const leftRib=box(3.08,.04,.05,mat.roofLight,house,-1.275,3.54,z);leftRib.rotation.z=.594;const rightRib=box(3.08,.04,.05,mat.roofLight,house,1.275,3.54,z);rightRib.rotation.z=-.594;}
+    box(.14,.16,4.35,mat.roofLight,house,0,4.4,0);
+    const beamMat=mat.wood;box(.15,2.7,.16,beamMat,house,-2.04,1.36,1.77);box(.15,2.7,.16,beamMat,house,2.04,1.36,1.77);box(4.3,.14,.16,beamMat,house,0,2.52,1.77);
+    // Door pivot at its left jamb.
+    const doorPivot=new THREE.Group();doorPivot.position.set(-.66,.16,1.805);house.add(doorPivot);
+    const door=box(1.28,2.12,.13,mat.wood,doorPivot,.64,1.06,0);door.name='door';
+    for(let y=.4;y<1.95;y+=.5)box(1.1,.055,.04,mat.darkWood,doorPivot,.64,y,.085);
+    const knob=sphere(.065,mat.yellow,doorPivot,1.08,1.06,.12);knob.name='door';
+    const doorFrame=box(1.52,2.35,.16,mat.darkWood,house,0,1.27,1.72);doorFrame.material=mat.darkWood;
+    // Re-add a dark inset behind the moving door, avoiding a flat closed-door look.
+    box(1.32,2.16,.08,toon(0x302e29),house,0,1.23,1.70);
+    house.remove(doorFrame); // frame jambs below preserve an open doorway
+    box(.13,2.36,.19,mat.darkWood,house,-.73,1.28,1.82);box(.13,2.36,.19,mat.darkWood,house,.73,1.28,1.82);box(1.58,.13,.19,mat.darkWood,house,0,2.42,1.82);
+    const windowMat=toon(0x91b8ad,{emissive:0xffc66d,emissiveIntensity:0});
+    const windows=[];function frontWindow(x){const w=box(.87,1.02,.09,windowMat,house,x,1.48,1.81);windows.push(w);box(.06,1.08,.12,mat.white,house,x,1.48,1.88);box(.93,.06,.12,mat.white,house,x,1.48,1.88);box(1.05,.13,.26,mat.wood,house,x,.93,1.88)}frontWindow(-1.4);frontWindow(1.4);
+    const sideWindow=box(.09,1.0,1.15,windowMat,house,2.17,1.5,-.25);windows.push(sideWindow);box(.13,.06,1.2,mat.white,house,2.23,1.5,-.25);box(.13,1.05,.06,mat.white,house,2.23,1.5,-.25);
+    const chimney=box(.63,1.75,.65,mat.rock,house,1.18,3.77,-.65);chimney.name='chimney';const chimneyCap=box(.82,.18,.83,mat.darkWood,house,1.18,4.68,-.65);chimneyCap.name='chimney';
+    for(let y=3.2;y<4.5;y+=.32)box(.67,.035,.68,mat.sand,house,1.18,y,-.65);
+    // Stone steps and an imperfect little path.
+    box(1.65,.2,.62,mat.stone,house,0,.03,2.08);box(1.9,.12,.68,mat.stone,house,0,-.08,2.45);
+    for(let i=0;i<6;i++){const p=cylinder(.42,.5,.1,mat.stone,island,-.3+Math.sin(i)*.25,1.07,3.2+i*.38,7);p.scale.z=.7;p.rotation.y=i*.7}
+
+    // Rounded trees, shrubs and flower dots build the storybook silhouette.
+    function tree(x,z,s=1){const g=new THREE.Group();g.position.set(x,1,z);g.scale.setScalar(s);island.add(g);const trunk=cylinder(.16,.23,2.15,mat.wood,g,0,1.0,0,9);trunk.rotation.z=.06;sphere(1.05,mat.leaf,g,0,2.5,0,1,1.1,1);sphere(.8,mat.leafLight,g,-.65,2.2,.12);sphere(.72,mat.leaf,g,.65,2.35,-.12);sphere(.62,mat.leafLight,g,.2,3.13,.08);return g}
+    tree(-3.35,-1.5,1.05);tree(3.25,-1.85,.83);tree(-3.85,1.1,.58);
+    function bush(x,z,s=.5){sphere(s,mat.leafLight,island,x,1.12,z,1.25,.75,1);sphere(s*.72,mat.leaf,island,x+s*.55,1.08,z+.05,1,.8,1)}
+    [[-2.8,2.8],[2.8,1.6],[3.8,.4],[-3.1,-2.8],[1.7,-3.4]].forEach((p,i)=>bush(p[0],p[1],.45+(i%2)*.14));
+    for(let i=0;i<28;i++){const a=rnd()*Math.PI*2,r=3.2+rnd()*1.3,x=Math.cos(a)*r,z=Math.sin(a)*r*.76;if(z>1.7&&Math.abs(x)<1.1)continue;const stem=cylinder(.018,.025,.25,mat.leaf,island,x,1.13,z,5);sphere(.085,i%3===0?mat.pink:mat.yellow,island,x,1.29,z,1,.65,1)}
+    // A small fence at the cliff edge.
+    const fence=new THREE.Group();fence.position.set(2.45,1.05,2.1);fence.rotation.y=-.35;island.add(fence);for(let i=0;i<4;i++)box(.12,.83,.12,mat.white,fence,i*.67,.4,0);box(2.2,.11,.11,mat.white,fence,1,.55,0);box(2.2,.11,.11,mat.white,fence,1,.22,0);
+
+    // Tiny rowboat, bobbing just offshore.
+    const boat=new THREE.Group();boat.position.set(7,-.08,3.5);boat.rotation.y=-.5;scene.add(boat);
+    const hull=mesh(new THREE.CapsuleGeometry(.56,1.65,4,12),mat.boat,boat);hull.rotation.x=Math.PI/2;hull.scale.set(1,.55,.36);hull.position.y=.05;
+    box(.8,.09,1.8,mat.wood,boat,0,.19,0);box(.93,.12,.18,mat.sand,boat,0,.31,-.35);box(.93,.12,.18,mat.sand,boat,0,.31,.35);
+    const oar=box(.07,.07,2.4,mat.darkWood,boat,.5,.36,0);oar.rotation.y=.35;
+
+    // Puffy clouds are grouped clay-like lobes rather than image sprites.
+    const clouds=[];function cloud(x,y,z,s){const g=new THREE.Group();g.position.set(x,y,z);g.scale.setScalar(s);scene.add(g);const cm=toon(0xf4f1df,{transparent:true,opacity:.88});sphere(1.4,cm,g,0,0,0,1.8,.6,1);sphere(1.05,cm,g,-.7,.45,0);sphere(1.25,cm,g,.65,.55,0);clouds.push({g,speed:.12+rnd()*.12,baseX:x});}
+    cloud(-18,13,-18,1.7);cloud(17,16,-24,2.1);cloud(-23,10,6,1.1);cloud(22,12,8,1.3);cloud(-5,13,-32,2.2);
+
+    // Smoke uses reusable soft-edged canvas sprites and a gentle curling lifecycle.
+    const smokeCanvas=document.createElement('canvas');smokeCanvas.width=smokeCanvas.height=64;const sx=smokeCanvas.getContext('2d');const sg=sx.createRadialGradient(32,32,3,32,32,30);sg.addColorStop(0,'rgba(248,243,221,.9)');sg.addColorStop(.45,'rgba(235,235,215,.55)');sg.addColorStop(1,'rgba(230,235,220,0)');sx.fillStyle=sg;sx.fillRect(0,0,64,64);const smokeTex=new THREE.CanvasTexture(smokeCanvas);
+    const smokes=[];for(let i=0;i<22;i++){const sm=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex,transparent:true,depthWrite:false,opacity:0}));scene.add(sm);smokes.push({s:sm,age:i/22,offset:rnd()*6.28});}
+    const chimneyWorld=new THREE.Vector3();let smokeOn=true;
+    // Fireflies switch on after sunset.
+    const fireflies=[];for(let i=0;i<18;i++){const f=sphere(.025,new THREE.MeshBasicMaterial({color:0xffe992,transparent:true,opacity:0}),scene,(rnd()-.5)*9,1.4+rnd()*2,(rnd()-.5)*7,1,1,1);fireflies.push({f,phase:rnd()*6.28})}
+
+    // Minimal gull marks, drifting high above the sea.
+    const gulls=[];const gullMat=new THREE.LineBasicMaterial({color:0x5f756e,transparent:true,opacity:.65});for(let i=0;i<5;i++){const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-.35,0,0),new THREE.Vector3(0,-.13,0),new THREE.Vector3(.35,0,0)]);const g=new THREE.Line(geo,gullMat);g.position.set((rnd()-.5)*22,8+rnd()*5,-7-rnd()*9);scene.add(g);gulls.push(g)}
+
+    const interactables=[door,knob,chimney,chimneyCap];
+    const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let down={x:0,y:0};
+    function hitTest(e){const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(interactables,false)[0]}
+    renderer.domElement.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY}});
+    renderer.domElement.addEventListener('pointerup',e=>{if(Math.hypot(e.clientX-down.x,e.clientY-down.y)>6)return;const hit=hitTest(e);if(!hit)return;if(hit.object.name==='door')toggleDoor();if(hit.object.name==='chimney')toggleSmoke()});
+    renderer.domElement.addEventListener('pointermove',e=>{renderer.domElement.style.cursor=hitTest(e)?'pointer':'grab'});
+
+    let doorOpen=false,doorAmount=0,toastTimer;
+    function toast(text){const el=$('#toast');el.textContent=text;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2200)}
+    function toggleDoor(){doorOpen=!doorOpen;$('#doorBtn').classList.toggle('active',doorOpen);$('#doorBtn .label').textContent=doorOpen?'掩上木门':'推开木门';toast(doorOpen?'门开了，进来坐坐吧':'轻轻掩上门，把海风留在窗外')}
+    function toggleSmoke(){smokeOn=!smokeOn;$('#smokeBtn').classList.toggle('active',smokeOn);$('#smokeBtn .label').textContent=smokeOn?'收起炊烟':'升起炊烟';toast(smokeOn?'炉火正暖，晚饭快好了':'炊烟慢慢散进风里')}
+    $('#doorBtn').addEventListener('click',toggleDoor);$('#smokeBtn').addEventListener('click',toggleSmoke);
+    let dayTime=.354,autoCycle=true,wasNight=false;
+    function toggleCycle(){autoCycle=!autoCycle;$('#cycleBtn').classList.toggle('active',autoCycle);$('#playIcon').textContent=autoCycle?'Ⅱ':'▶';$('#cycleBtn .label').textContent=autoCycle?'暂停时光':'昼夜流转';toast(autoCycle?'让晨昏继续慢慢流转':'把时间停在这一刻')}
+    $('#cycleBtn').addEventListener('click',toggleCycle);$('#cycleBtn').classList.add('active');
+    $('#timeSlider').addEventListener('input',e=>{dayTime=Number(e.target.value)/1000});
+    let resetting=false;$('#resetBtn').addEventListener('click',()=>{resetting=true;toast('回到初见小岛的地方')});
+    controls.addEventListener('start',()=>resetting=false);
+    addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.code==='Space'){e.preventDefault();toggleCycle()}if(e.key.toLowerCase()==='d')toggleDoor();if(e.key.toLowerCase()==='s')toggleSmoke()});
+
+    // Optional synthesized sea ambience; no media files and no autoplay.
+    let audioCtx,audioGain,soundOn=false;
+    function makeSeaAudio(){audioCtx=new (window.AudioContext||window.webkitAudioContext)();const len=audioCtx.sampleRate*4,buf=audioCtx.createBuffer(1,len,audioCtx.sampleRate),data=buf.getChannelData(0);let last=0;for(let i=0;i<len;i++){const white=Math.random()*2-1;last=(last+.02*white)/1.02;data[i]=last*3.2}const src=audioCtx.createBufferSource();src.buffer=buf;src.loop=true;const filter=audioCtx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=780;audioGain=audioCtx.createGain();audioGain.gain.value=0;src.connect(filter).connect(audioGain).connect(audioCtx.destination);src.start();const lfo=audioCtx.createOscillator(),lfoGain=audioCtx.createGain();lfo.frequency.value=.12;lfoGain.gain.value=.07;lfo.connect(lfoGain).connect(audioGain.gain);lfo.start()}
+    $('#soundBtn').addEventListener('click',async()=>{if(!audioCtx)makeSeaAudio();await audioCtx.resume();soundOn=!soundOn;audioGain.gain.setTargetAtTime(soundOn?.16:0,audioCtx.currentTime,.5);$('#soundBtn').classList.toggle('active',soundOn);$('#soundBtn').style.background=soundOn?'#425f57':' ';$('#soundBtn').style.color=soundOn?'#fffdf5':'';$('#soundBtn').title=soundOn?'关闭环境音':'开启环境音';toast(soundOn?'听，海浪正轻轻靠岸':'只留眼前的风景')});
+
+    const palettes={dayTop:new THREE.Color(0x78b5c5),dayBottom:new THREE.Color(0xe6edcf),dawnTop:new THREE.Color(0x829cae),dawnBottom:new THREE.Color(0xf2b58e),nightTop:new THREE.Color(0x152d45),nightBottom:new THREE.Color(0x536b76),fogDay:new THREE.Color(0xc7dfd7),fogNight:new THREE.Color(0x263e4b),seaDay:new THREE.Color(0x4f9d9c),seaNight:new THREE.Color(0x254e62),shallowDay:new THREE.Color(0x91c5b6),shallowNight:new THREE.Color(0x587c83)};
+    const c1=new THREE.Color(),c2=new THREE.Color();
+    function updateDay(dt,t){
+      const angle=(dayTime-.25)*Math.PI*2,sunY=Math.sin(angle),sunX=Math.cos(angle);const daylight=THREE.MathUtils.smoothstep(sunY,-.16,.24);const dusk=Math.max(0,1-Math.abs(sunY)*4)*(.4+.6*Math.abs(sunX));
+      const sunPos=new THREE.Vector3(sunX*55,sunY*48,-30);sun.position.copy(sunPos);sunHalo.position.copy(sunPos);moon.position.copy(sunPos).multiplyScalar(-1);sun.visible=sunY>-.13;sunHalo.visible=sun.visible;moon.visible=sunY<.16;
+      sunLight.position.set(sunX*18,Math.max(2,sunY*24),8);sunLight.intensity=.15+daylight*3.1;sunLight.color.set(dusk>.25?0xffb078:0xffe3b4);hemi.intensity=.45+daylight*1.7;fillLight.intensity=.2+daylight*.35;
+      skyUniforms.topColor.value.copy(palettes.nightTop).lerp(palettes.dayTop,daylight).lerp(palettes.dawnTop,dusk*.42);skyUniforms.bottomColor.value.copy(palettes.nightBottom).lerp(palettes.dayBottom,daylight).lerp(palettes.dawnBottom,dusk*.72);
+      scene.fog.color.copy(palettes.fogNight).lerp(palettes.fogDay,daylight);oceanUniforms.uDeep.value.copy(palettes.seaNight).lerp(palettes.seaDay,daylight);oceanUniforms.uShallow.value.copy(palettes.shallowNight).lerp(palettes.shallowDay,daylight);oceanUniforms.uDay.value=daylight;oceanUniforms.uHorizon.value.copy(skyUniforms.bottomColor.value);
+      stars.material.opacity=Math.pow(1-daylight,2)*.9;windows.forEach(w=>w.material.emissiveIntensity=(1-daylight)*1.7);renderer.toneMappingExposure=.78+daylight*.3;
+      const night=daylight<.35;if(night!==wasNight){document.body.classList.toggle('night',night);wasNight=night}
+      const hours=dayTime*24,h=Math.floor(hours),m=Math.floor((hours-h)*60);$('#clock').textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+      let phase='深夜 · 星光落在海面';if(h>=5&&h<8)phase='晨光 · 海风轻拂';else if(h>=8&&h<11)phase='上午 · 云影慢慢走';else if(h>=11&&h<15)phase='午后 · 日光晒暖屋檐';else if(h>=15&&h<18)phase='傍晚 · 等一场日落';else if(h>=18&&h<20)phase='暮色 · 灯火刚刚亮起';else if(h>=20||h<5)phase='夜晚 · 枕着潮声入眠';$('#phase').textContent=phase;
+      $('.sun-path').style.setProperty('--sun-x',(dayTime*100)+'%');$('.sun-path').style.setProperty('--sun-y',(22-Math.max(-.2,sunY)*19)+'px');
+      fireflies.forEach(({f,phase})=>{f.material.opacity=(1-daylight)*(.25+.65*Math.pow(Math.sin(t*2+phase)*.5+.5,2));f.position.y+=Math.sin(t+phase)*.0008});
+    }
+
+    const clock=new THREE.Clock();let elapsed=0,firstFrame=true;
+    function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);elapsed+=dt;if(autoCycle&&!reducedMotion)dayTime=(dayTime+dt/150)%1;$('#timeSlider').value=Math.round(dayTime*1000);updateDay(dt,elapsed);oceanUniforms.uTime.value=elapsed;
+      doorAmount=THREE.MathUtils.damp(doorAmount,doorOpen?1:0,5,dt);doorPivot.rotation.y=-doorAmount*Math.PI*.57;
+      chimneyCap.getWorldPosition(chimneyWorld);smokes.forEach((p,i)=>{p.age=(p.age+dt*(smokeOn?.16:.05))%1;const a=p.age,drift=a*a*2.1;p.s.position.set(chimneyWorld.x+Math.sin(a*5+p.offset)*.22+drift,chimneyWorld.y+.35+a*5.2,chimneyWorld.z+Math.cos(a*4+p.offset)*.18);const size=.35+a*1.75;p.s.scale.set(size,size,1);p.s.material.opacity=(smokeOn?1:Math.max(0,1-a*5))*Math.sin(a*Math.PI)*.56});
+      clouds.forEach(c=>{c.g.position.x+=dt*c.speed;if(c.g.position.x>32)c.g.position.x=-32});boat.position.y=-.08+Math.sin(elapsed*.85)*.09;boat.rotation.z=Math.sin(elapsed*.7)*.035;foamRing.material.opacity=.38+Math.sin(elapsed*.9)*.1;foamRing.scale.set(1+Math.sin(elapsed*.65)*.015,(.83)+Math.sin(elapsed*.65)*.012,1);
+      gulls.forEach((g,i)=>{g.position.x+=dt*(.22+i*.03);g.position.y+=Math.sin(elapsed*1.2+i)*.001;if(g.position.x>18)g.position.x=-18});
+      if(resetting){camera.position.lerp(homeCamera,1-Math.exp(-dt*3));controls.target.lerp(new THREE.Vector3(0,1.8,0),1-Math.exp(-dt*3));if(camera.position.distanceTo(homeCamera)<.03)resetting=false}
+      controls.update();renderer.render(scene,camera);if(firstFrame){firstFrame=false;setTimeout(()=>$('#loader').classList.add('done'),350)}
+    }
+    animate();
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.8))});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)clock.stop();else clock.start()});
+  </script>
+</body>
+</html>
