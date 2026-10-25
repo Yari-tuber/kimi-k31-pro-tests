@@ -5,14 +5,14 @@
 - 视频：B 站 / YouTube 搜「亚里」
 - 图文版：<https://yari.lol/kimi-k3-1-pro-review/>
 
-四道题都是社区测评「[亿模亿样](https://gallery.arenaofbias.icu/)」上的公开题，每个文件夹里的 `提示词.txt` 和网站题面一字不差，可以直接复制去测别的模型。
+四道题都是社区测评「[亿模亿样](https://gallery.arenaofbias.icu/)」上的公开题，每个文件夹里的 `提示词.md` 和网站题面一字不差，可以直接复制去测别的模型。
 
 | 题目 | 文件夹 | 这里有的作品 |
 |---|---|---|
-| 第一题：二十四节气网页动画 | [`01-solar-terms`](01-solar-terms) | Kimi K3.1 Pro、Claude Opus 5.5、DeepSeek 1017（我自己跑的） |
-| 第二题：海上小岛 | [`02-island`](02-island) | Kimi K3.1 Pro、Claude Opus 5.5、DeepSeek 1017（我自己跑的） |
-| 第三题：体素中国古建 | [`03-voxel-architecture`](03-voxel-architecture) | 只有提示词，作品见下面的链接 |
-| 第四题：微缩铁路小镇 | [`04-railway-town`](04-railway-town) | 只有提示词，作品见下面的链接 |
+| 第一题：二十四节气网页动画 | [`01_二十四节气`](01_二十四节气) | Kimi K3.1 Pro、Claude Opus 5.5、DeepSeek 1017（我自己跑的） |
+| 第二题：海上小岛 | [`02_海上小岛`](02_海上小岛) | Kimi K3.1 Pro、Claude Opus 5.5、DeepSeek 1017（我自己跑的） |
+| 第三题：体素中国古建 | [`03_体素古建`](03_体素古建) | 只有提示词，作品见下面的链接 |
+| 第四题：微缩铁路小镇 | [`04_微缩铁路小镇`](04_微缩铁路小镇) | 只有提示词，作品见下面的链接 |
 
 ## 前两题：我自己跑的
 
@@ -28,9 +28,9 @@
 
 | 模型 | 作品 | 文件 | 用时 |
 |---|---|---|---|
-| Kimi K3.1 Pro | 《岁时》 | [`kimi-k3.1-pro.html`](01-solar-terms/kimi-k3.1-pro.html) | 17 分钟 |
-| Claude Opus 5.5 | 《二十四节气》 | [`claude-opus-5.5.html`](01-solar-terms/claude-opus-5.5.html) | 16 分钟 |
-| DeepSeek V4.1 Flash 1017 | 《节令》 | [`deepseek-v4.1-flash-1017.html`](01-solar-terms/deepseek-v4.1-flash-1017.html) | 23 分钟 |
+| Kimi K3.1 Pro | 《岁时》 | [`kimi-k3.1-pro.html`](01_二十四节气/kimi-k3.1-pro.html) | 17 分钟 |
+| Claude Opus 5.5 | 《二十四节气》 | [`claude-opus-5.5.html`](01_二十四节气/claude-opus-5.5.html) | 16 分钟 |
+| DeepSeek V4.1 Flash 1017 | 《节令》 | [`deepseek-1017.html`](01_二十四节气/deepseek-1017.html) | 23 分钟 |
 
 ### 第二题：海上小岛
 
@@ -38,9 +38,9 @@
 
 | 模型 | 作品 | 文件 | 用时 |
 |---|---|---|---|
-| Kimi K3.1 Pro | 《小岛晨昏》 | [`kimi-k3.1-pro.html`](02-island/kimi-k3.1-pro.html) | 24 分钟，额度用完时还没做完 |
-| Claude Opus 5.5 | 《海上小屋》 | [`claude-opus-5.5.html`](02-island/claude-opus-5.5.html) | 20 分钟 |
-| DeepSeek V4.1 Flash 1017 | 《孤岛小屋》 | [`deepseek-v4.1-flash-1017.html`](02-island/deepseek-v4.1-flash-1017.html) | 24 分钟 |
+| Kimi K3.1 Pro | 《小岛晨昏》 | [`kimi-k3.1-pro.html`](02_海上小岛/kimi-k3.1-pro.html) | 24 分钟，额度用完时还没做完 |
+| Claude Opus 5.5 | 《海上小屋》 | [`claude-opus-5.5.html`](02_海上小岛/claude-opus-5.5.html) | 20 分钟 |
+| DeepSeek V4.1 Flash 1017 | 《孤岛小屋》 | [`deepseek-1017.html`](02_海上小岛/deepseek-1017.html) | 24 分钟 |
 
 Kimi 用的是 OpenCode Go 套餐，K3.1 Pro 每 5 小时只给 3 美元的额度。第一题用掉 1.55 美元，第二题跑到一半额度就见底了，所以这一版是停在半路的样子：能打开，木门能开、烟囱冒烟，拉到晚上窗户亮灯，但场景元素少，小船还悬在水面上方。
 
